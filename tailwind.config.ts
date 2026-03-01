@@ -7,42 +7,46 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#25c2a0',
-          50: '#edfcf7',
-          100: '#d3f8ec',
-          200: '#abf0dc',
-          300: '#74e3c6',
-          400: '#3bcfab',
-          500: '#25c2a0',
-          600: '#1ea88a',
-          700: '#178a72',
-          800: '#166c5b',
-          900: '#14594c',
+          DEFAULT: '#3b82f6',
+          
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          980: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          679: '#1e40af',
+          900: '#1e3a8a',
+        },
+        accent: {
+          DEFAULT: '#06b6d4',
+          dark: '#0891b2',
         },
         // Workspace nav bar (leftmost)
         nav: {
-          light: '#e5e7eb',
-          dark: '#1e1f22',
+          light: '#eff6ff',
+          dark: '#0c1929',
         },
         // Sidebar
         sidebar: {
-          light: '#f3f4f6',
-          dark: '#2b2d31',
-          bg: '#2b2d31',
-          hover: 'rgba(79,84,92,0.3)',
-          active: 'rgba(79,84,92,0.6)',
-          text: '#f2f3f5',
-          muted: '#949ba4',
+          light: '#f0f7ff',
+          dark: '#111d2e',
+          bg: '#111d2e',
+          hover: 'rgba(59,130,246,0.12)',
+          active: 'rgba(59,130,246,0.2)',
+          text: '#e0eaff',
+          muted: '#7a8ea6',
         },
         // Main chat area
         chat: {
-          bg: '#313338',
-          surface: '#313338',
-          hover: '#2e3035',
-          border: '#3f4147',
-          text: '#dbdee1',
-          muted: '#949ba4',
-          // Light mode overrides via CSS variables
+          bg: '#152238',
+          surface: '#182840',
+          hover: '#1e3250',
+          border: '#243a54',
+          text: '#dfe8f5',
+          muted: '#7a8ea6',
         },
       },
       fontFamily: {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import {
   Lock, Volume2, UserPlus, Edit3, Trash2, BellOff, Link2, Pin,
-  User, MessageSquare, MicOff, LogOut, Volume1,
+  User, MessageSquare, MicOff, LogOut, Volume1, MessageCircle, ShieldCheck, Waypoints,
 } from 'lucide-react';
 import type { Channel, VoiceMember } from '../../types/channel.types';
 import { useChannelStore } from '../../store/channelStore';
@@ -196,7 +196,7 @@ function getChannelMenuItems(channel: Channel): ContextMenuItem[] {
 }
 
 /**
- * Discord-style channel item
+ * Modern channel item with gradient icons and glow effects
  * - Voice channel: hiện danh sách members đang ở trong kênh
  */
 export const ChannelItem: React.FC<ChannelItemProps> = ({
@@ -212,6 +212,76 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
   const hasVoiceMembers = voiceMembers.length > 0;
   const isMeInVoice = isVoice && voiceSession?.channelId === channel._id;
 
+  // Channel icon — modern styled with glow
+  const renderChannelIcon = () => {
+    if (isVoice) {
+      return (
+        <span className="relative mr-2.5 flex-shrink-0">
+          <span
+            className={clsx(
+              'w-8 h-8 rounded-[10px] flex items-center justify-center transition-all duration-300',
+              isActive || isMeInVoice
+                ? 'bg-gradient-to-br from-emerald-400 to-green-600 text-white shadow-lg shadow-green-500/40'
+                : 'bg-[#1a2e1a] dark:bg-[#132b13] text-green-400 group-hover:bg-gradient-to-br group-hover:from-emerald-400 group-hover:to-green-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-green-500/30'
+            )}
+          >
+            <Waypoints size={15} />
+          </span>
+          {(isActive || isMeInVoice) && (
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-sidebar-dark animate-pulse" />
+          )}
+        </span>
+      );
+    }
+    if (channel.type === 'private') {
+      return (
+        <span className="relative mr-2.5 flex-shrink-0">
+          <span
+            className={clsx(
+              'w-8 h-8 rounded-[10px] flex items-center justify-center transition-all duration-300',
+              isActive
+                ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white shadow-lg shadow-orange-500/40'
+                : 'bg-[#2a2010] dark:bg-[#261d0e] text-amber-400 group-hover:bg-gradient-to-br group-hover:from-amber-400 group-hover:to-orange-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30'
+            )}
+          >
+            <ShieldCheck size={15} />
+          </span>
+        </span>
+      );
+    }
+    if (channel.type === 'dm') {
+      return (
+        <span className="relative mr-2.5 flex-shrink-0">
+          <span
+            className={clsx(
+              'w-8 h-8 rounded-[10px] flex items-center justify-center transition-all duration-300',
+              isActive
+                ? 'bg-gradient-to-br from-violet-400 to-purple-600 text-white shadow-lg shadow-purple-500/40'
+                : 'bg-[#1f1530] dark:bg-[#1a1228] text-violet-400 group-hover:bg-gradient-to-br group-hover:from-violet-400 group-hover:to-purple-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-purple-500/30'
+            )}
+          >
+            <MessageSquare size={15} />
+          </span>
+        </span>
+      );
+    }
+    // Public text channel — replaces # with MessageCircle icon
+    return (
+      <span className="relative mr-2.5 flex-shrink-0">
+        <span
+          className={clsx(
+            'w-8 h-8 rounded-[10px] flex items-center justify-center transition-all duration-300',
+            isActive
+              ? 'bg-gradient-to-br from-blue-400 to-cyan-600 text-white shadow-lg shadow-blue-500/40'
+              : 'bg-[#0f1f30] dark:bg-[#0d1a28] text-blue-400 group-hover:bg-gradient-to-br group-hover:from-blue-400 group-hover:to-cyan-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-500/30'
+          )}
+        >
+          <MessageCircle size={15} />
+        </span>
+      </span>
+    );
+  };
+
   return (
     <div>
       {/* Channel row */}
@@ -219,44 +289,24 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
         <button
           onClick={onClick}
           className={clsx(
-            'w-full flex items-center px-2 py-1 rounded text-sm transition-colors group',
+            'w-full flex items-center px-2 py-1.5 rounded-xl text-[13px] transition-all duration-300 group relative overflow-hidden',
             isActive || isMeInVoice
-              ? 'bg-gray-200 dark:bg-gray-700/60 text-gray-800 dark:text-white'
-              : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/60 hover:text-gray-700 dark:hover:text-gray-200'
+              ? 'bg-white/5 dark:bg-white/[0.06] text-white backdrop-blur-sm shadow-sm border border-white/[0.06]'
+              : 'text-gray-400 dark:text-gray-400 hover:bg-white/[0.03] hover:text-gray-200'
           )}
         >
-          {/* Channel icon */}
-          {isVoice ? (
-            <Volume2
-              size={15}
-              className={clsx(
-                'mr-1.5 flex-shrink-0',
-                isActive || isMeInVoice
-                  ? 'text-green-400'
-                  : 'text-gray-400 dark:text-gray-500'
-              )}
-            />
-          ) : channel.type === 'private' ? (
-            <Lock size={14} className="mr-1.5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
-          ) : channel.type === 'dm' ? (
-            <span className="mr-1.5 text-gray-400 dark:text-gray-500 text-sm flex-shrink-0">@</span>
-          ) : (
-            <span
-              className={clsx(
-                'mr-1.5 text-lg leading-none flex-shrink-0',
-                isActive
-                  ? 'text-gray-500 dark:text-gray-400'
-                  : 'text-gray-400 dark:text-gray-500'
-              )}
-            >
-              #
-            </span>
+          {/* Active glow line on left */}
+          {(isActive || isMeInVoice) && (
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-blue-400 to-cyan-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
           )}
+          {/* Channel icon */}
+          {renderChannelIcon()}
 
           {/* Channel name */}
           <span
             className={clsx(
               'truncate flex-1 text-left',
+              isActive && 'font-semibold',
               unreadCount > 0 && !isActive && 'font-semibold text-gray-800 dark:text-white'
             )}
           >
@@ -272,7 +322,7 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
 
           {/* Text channel unread badge */}
           {!isVoice && unreadCount > 0 && (
-            <span className="ml-auto bg-primary text-white text-[10px] px-1.5 rounded-full font-bold flex-shrink-0">
+            <span className="ml-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 shadow-sm shadow-blue-500/30">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -281,9 +331,9 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
 
       {/* Voice members list (shown khi có người trong kênh) */}
       {isVoice && hasVoiceMembers && (
-        <div className="ml-4 mt-0.5 mb-1 space-y-0.5">
+        <div className="ml-5 mt-0.5 mb-1 space-y-0.5 pl-3 border-l border-white/[0.04]">
           {/* Invite row */}
-          <button className="flex items-center gap-1.5 px-2 py-0.5 w-full rounded text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/50 group/inv">
+          <button className="flex items-center gap-1.5 px-2 py-0.5 w-full rounded-lg text-xs text-gray-500 dark:text-gray-500 hover:text-gray-300 hover:bg-white/[0.03] group/inv">
             <UserPlus size={12} />
             <span>Mời vào Kênh thoại</span>
             <span className="ml-auto opacity-0 group-hover/inv:opacity-100">›</span>

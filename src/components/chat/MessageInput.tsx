@@ -2,8 +2,8 @@ import React, { useState, useRef, useCallback } from 'react';
 import { getSocket } from '../../socket/socket';
 import { useTyping } from '../../hooks/useTyping';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { useChannelStore } from '../../store/channelStore';
-import { Send, Plus, X, Loader2, Smile, Image } from 'lucide-react';
+import { useChannelStore, type ReplyingTo } from '../../store/channelStore';
+import { Send, Plus, X, Loader2, Smile, Image, Reply } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Attachment } from '../../types/message.types';
 
@@ -12,7 +12,8 @@ interface MessageInputProps {
   onSend: (
     content: string,
     type?: 'text' | 'image' | 'file',
-    attachment?: Attachment
+    attachment?: Attachment,
+    replyTo?: string | null
   ) => Promise<void>;
 }
 
@@ -30,6 +31,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   const currentChannel = useChannelStore((s) => s.current);
+  const replyingTo = useChannelStore((s) => s.replyingTo);
+  const clearReplyingTo = useChannelStore((s) => s.clearReplyingTo);
   const { startTyping, stopTyping } = useTyping(channelId);
   const { upload, uploading, progress } = useFileUpload();
 
@@ -47,12 +50,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         const type = pendingFile.mimeType.startsWith('image/')
           ? 'image'
           : 'file';
-        await onSend(text, type, pendingFile);
+        await onSend(text, type, pendingFile, replyingTo?._id || null);
         setPendingFile(null);
       } else {
-        await onSend(text, 'text');
+        await onSend(text, 'text', undefined, replyingTo?._id || null);
       }
       setContent('');
+      clearReplyingTo();
       textInputRef.current?.focus();
     } catch {
       toast.error('Gửi tin nhắn thất bại');
@@ -88,6 +92,27 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   return (
     <div className="px-4 pb-6 pt-2 flex-shrink-0">
+      {/* Reply preview */}
+      {replyingTo && (
+        <div className="mb-3 flex items-center gap-3 p-3 bg-blue-50 dark:bg-[#1e3250] rounded-xl border-l-4 border-primary">
+          <Reply size={20} className="text-primary flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <span className="text-sm text-primary font-semibold">
+              Đang trả lời {replyingTo.sender.username}
+            </span>
+            <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">
+              {replyingTo.content || '[File/Image]'}
+            </p>
+          </div>
+          <button
+            onClick={clearReplyingTo}
+            className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-[#243a54] text-gray-500"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Pending file preview */}
       {pendingFile && (
         <div className="mb-2 flex items-center gap-2 p-2 bg-gray-100 dark:bg-[#383a40] rounded-lg">
@@ -125,14 +150,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       )}
 
       {/* Discord-style input container */}
-      <div className="bg-gray-100 dark:bg-[#383a40] rounded-lg px-4 py-2.5 shadow-sm">
+      <div className="bg-blue-50 dark:bg-[#1e3250] rounded-xl px-4 py-2.5 shadow-sm border border-blue-100 dark:border-[#243a54]">
         <form onSubmit={handleSubmit} className="flex items-center">
           {/* Add file button */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-500 flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-200 mr-3 transition-colors flex-shrink-0 disabled:opacity-50"
+            className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center hover:bg-primary/30 text-primary mr-3 transition-colors flex-shrink-0 disabled:opacity-50"
             title="Attach file"
           >
             <Plus size={14} />

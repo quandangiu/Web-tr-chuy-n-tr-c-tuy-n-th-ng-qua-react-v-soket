@@ -89,33 +89,34 @@ export const ChannelList: React.FC<ChannelListProps> = ({
       <div key={key}>
         {/* Category header */}
         <div
-          className="flex items-center justify-between px-2 mb-0.5 group cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="flex items-center justify-between px-2 py-1.5 mb-1.5 group cursor-pointer rounded-lg transition-colors"
           onClick={() => toggleCategory(key)}
         >
-          <div className="flex items-center text-xs font-bold uppercase tracking-wide">
+          <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-500/70 dark:text-gray-500/60 group-hover:text-gray-400 dark:group-hover:text-gray-400 transition-colors">
             <ChevronDown
               size={10}
               className={clsx(
-                'mr-0.5 transition-transform',
+                'transition-transform duration-200',
                 isCollapsed && '-rotate-90'
               )}
             />
             {label}
+            <span className="text-[9px] font-normal text-gray-500/40 dark:text-gray-600">({items.length})</span>
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setCreateChannelModal(true);
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-0.5 rounded-md hover:bg-white/5 text-gray-500 hover:text-blue-400"
           >
-            <Plus size={14} />
+            <Plus size={13} />
           </button>
         </div>
 
         {/* Channel items */}
         {!isCollapsed && (
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {items.map((ch) => (
               <li key={ch._id}>
                 <ChannelItem

@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 import type { Channel, VoiceMember } from '../types/channel.types';
+import type { Message } from '../types/message.types';
+
+export interface ReplyingTo {
+  _id: string;
+  content: string;
+  sender: {
+    _id: string;
+    username: string;
+  };
+}
 
 interface ChannelState {
   channels: Channel[];
@@ -10,6 +20,8 @@ interface ChannelState {
   voiceMembers: Map<string, VoiceMember[]>;
   // Set userId đang nói (speaking indicator)
   speakingUsers: Set<string>;
+  // Tin nhắn đang reply
+  replyingTo: ReplyingTo | null;
 
   setChannels: (chs: Channel[]) => void;
   addChannel: (ch: Channel) => void;
@@ -27,6 +39,8 @@ interface ChannelState {
   removeVoiceMember: (channelId: string, userId: string) => void;
   getVoiceMembers: (channelId: string) => VoiceMember[];
   setSpeaking: (userId: string, isSpeaking: boolean) => void;
+  setReplyingTo: (message: ReplyingTo | null) => void;
+  clearReplyingTo: () => void;
 }
 
 export const useChannelStore = create<ChannelState>((set, get) => ({
@@ -36,6 +50,7 @@ export const useChannelStore = create<ChannelState>((set, get) => ({
   typingUsers: new Map(),
   voiceMembers: new Map(),
   speakingUsers: new Set(),
+  replyingTo: null,
 
   setChannels: (channels) => set({ channels }),
 
@@ -136,4 +151,7 @@ export const useChannelStore = create<ChannelState>((set, get) => ({
       set({ speakingUsers: next });
     }
   },
+
+  setReplyingTo: (message) => set({ replyingTo: message }),
+  clearReplyingTo: () => set({ replyingTo: null }),
 }));

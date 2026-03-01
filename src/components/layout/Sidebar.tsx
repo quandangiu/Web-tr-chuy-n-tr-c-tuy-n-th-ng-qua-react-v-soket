@@ -8,7 +8,7 @@ import { CreateWorkspaceModal } from '../workspace/CreateWorkspaceModal';
 import { CreateChannelModal } from '../channel/CreateChannelModal';
 import { Avatar } from '../ui/Avatar';
 import { VoiceChannelBar } from '../voice/VoiceChannelBar';
-import { ChevronDown, Mic, Headphones, Settings, Plus } from 'lucide-react';
+import { Mic, Headphones, Settings } from 'lucide-react';
 import { authService } from '../../services/auth.service';
 import { disconnectSocket } from '../../socket/socket';
 import toast from 'react-hot-toast';
@@ -32,17 +32,23 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-100 dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-800">
-      {/* Workspace header */}
-      <div className="h-12 px-4 flex items-center justify-between shadow-sm border-b border-gray-200 dark:border-gray-900 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-        <h1 className="font-bold truncate text-gray-800 dark:text-white text-sm">
+    <div className="h-full flex flex-col bg-blue-50/50 dark:bg-sidebar-dark border-r border-blue-100 dark:border-[#243a54] relative overflow-hidden">
+      {/* Ambient background effects (dark mode only) */}
+      <div className="absolute inset-0 pointer-events-none dark:block hidden">
+        <div className="sidebar-ambient-orb-1 absolute top-20 -left-10 w-32 h-32 bg-blue-500/[0.04] rounded-full blur-3xl" />
+        <div className="sidebar-ambient-orb-2 absolute bottom-40 -right-10 w-28 h-28 bg-cyan-500/[0.04] rounded-full blur-3xl" />
+        <div className="sidebar-ambient-orb-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/[0.02] rounded-full blur-3xl" />
+      </div>
+
+      {/* Workspace name banner */}
+      <div className="relative h-11 px-4 flex items-center border-b border-blue-100/50 dark:border-white/[0.06]">
+        <h1 className="font-bold truncate text-gray-800 dark:text-white text-sm tracking-wide">
           {current?.name || 'Select Workspace'}
         </h1>
-        <ChevronDown size={14} className="text-gray-500 dark:text-gray-300" />
       </div>
 
       {/* Channel list */}
-      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+      <div className="relative flex-1 overflow-y-auto py-3 px-2 space-y-4">
         {current && (
           <ChannelList
             workspaceId={current._id}
@@ -54,8 +60,8 @@ export const Sidebar: React.FC = () => {
       {/* Voice channel bar — xuất hiện khi đang ở trong voice channel */}
       <VoiceChannelBar />
 
-      {/* User panel - Discord style */}
-      <div className="h-[52px] bg-gray-100 dark:bg-[#232428] flex items-center px-2 space-x-2">
+      {/* User panel */}
+      <div className="relative h-[52px] bg-blue-50 dark:bg-[#070e1a] flex items-center px-2 space-x-2 border-t border-blue-100 dark:border-white/[0.06]">
         <div className="relative group cursor-pointer" onClick={handleLogout} title="Click to logout">
           <Avatar
             src={user?.avatar}
@@ -73,13 +79,13 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center">
-          <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300" title="Mic">
+          <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Mic">
             <Mic size={16} />
           </button>
-          <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300" title="Headset">
+          <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Headset">
             <Headphones size={16} />
           </button>
-          <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300" title="Settings">
+          <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Settings">
             <Settings size={16} />
           </button>
         </div>

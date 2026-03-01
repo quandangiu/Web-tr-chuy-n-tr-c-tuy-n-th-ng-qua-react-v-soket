@@ -13,12 +13,19 @@ import {
   Search,
   Sun,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
+interface HeaderProps {
+  onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
+}
+
 /**
- * Discord-style header with # channel name, description, action buttons, search
+ * Header with sidebar toggle, # channel name, description, action buttons, search
  */
-export const Header: React.FC = () => {
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, sidebarOpen }) => {
   const currentChannel = useChannelStore((s) => s.current);
   const currentWorkspace = useWorkspaceStore((s) => s.current);
   const { setVideoCallModal, theme, toggleTheme } = useUIStore();
@@ -36,9 +43,19 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="h-12 px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 shadow-sm flex-shrink-0 bg-white dark:bg-chat-bg">
-      {/* Left: Channel info */}
-      <div className="flex items-center text-gray-800 dark:text-white min-w-0">
+    <header className="h-12 px-4 flex items-center justify-between border-b border-blue-100 dark:border-[#243a54] shadow-sm flex-shrink-0 bg-white/80 dark:bg-chat-bg/90 backdrop-blur-md">
+      {/* Left: Toggle + Channel info */}
+      <div className="flex items-center text-gray-800 dark:text-white min-w-0 gap-2">
+        {/* Sidebar toggle button */}
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary transition-colors flex-shrink-0"
+            title={sidebarOpen ? 'Ẩn sidebar' : 'Hiện sidebar'}
+          >
+            {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+          </button>
+        )}
         {currentChannel ? (
           <>
             {getChannelIcon()}

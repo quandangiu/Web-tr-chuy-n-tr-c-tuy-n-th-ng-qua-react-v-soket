@@ -66,7 +66,8 @@ export const ChannelPage: React.FC = () => {
   const handleSend = async (
     content: string,
     type: 'text' | 'image' | 'file' = 'text',
-    attachment?: Attachment
+    attachment?: Attachment,
+    replyTo?: string | null
   ) => {
     const socket = getSocket();
     if (!socket) return;
@@ -78,7 +79,7 @@ export const ChannelPage: React.FC = () => {
         channelId,
         content,
         type,
-        replyTo: null,
+        replyTo: replyTo || null,
         attachment: attachment || undefined,
       },
       (response: { success?: boolean; error?: string }) => {

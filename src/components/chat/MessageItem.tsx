@@ -8,6 +8,7 @@ import { thumbnail, getFileIcon, formatFileSize } from '../../utils/cloudinary';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { useMessageStore } from '../../store/messageStore';
+import { useChannelStore } from '../../store/channelStore';
 import { messageService } from '../../services/message.service';
 import {
   SmilePlus, MoreHorizontal, Reply, Trash2,
@@ -26,12 +27,12 @@ interface MessageItemProps {
 }
 
 /** Build context menu items for a message */
-function getMessageMenuItems(message: Message, isOwn: boolean): ContextMenuItem[] {
+function getMessageMenuItems(message: Message, isOwn: boolean, onReply: () => void): ContextMenuItem[] {
   return [
     {
       label: 'Trả lời',
       icon: <Reply size={14} />,
-      onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
+      onClick: onReply,
     },
     {
       label: 'React',
@@ -128,6 +129,7 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const currentUserId = useAuthStore((s) => s.user?._id);
     const setLightboxUrl = useUIStore((s) => s.setLightboxUrl);
+    const setReplyingTo = useChannelStore((s) => s.setReplyingTo);
     const isOwn = message.sender._id === currentUserId;
 
     if (message.isDeleted) {
@@ -137,6 +139,17 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
         </div>
       );
     }
+
+    const handleReply = () => {
+      setReplyingTo({
+        _id: message._id,
+        content: message.content,
+        sender: {
+          _id: message.sender._id,
+          username: message.sender.username,
+        },
+      });
+    };
 
     const handleReaction = async (emoji: string) => {
       try {
@@ -168,10 +181,10 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
     ];
 
     return (
-      <ContextMenu items={getMessageMenuItems(message, isOwn)}>
+      <ContextMenu items={getMessageMenuItems(message, isOwn, handleReply)}>
         <div
           className={clsx(
-            'group relative flex hover:bg-gray-50 dark:hover:bg-[#2e3035] -mx-4 px-4 py-1 transition-colors',
+            'group relative flex hover:bg-blue-50/50 dark:hover:bg-[#1e3250] -mx-4 px-4 py-1 transition-colors',
             message.isPending && 'opacity-60'
           )}
         >
@@ -212,9 +225,11 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
 
             {/* Reply quote */}
             {message.replyTo && (
-              <div className="mb-1 pl-3 border-l-2 border-primary text-xs text-gray-500 dark:text-chat-muted">
-                <span className="font-medium">{message.replyTo.sender.username}</span>
-                : {message.replyTo.content?.slice(0, 100)}
+              <div className="mb-2 pl-3 py-1.5 border-l-2 border-primary bg-blue-50 dark:bg-[#1e3250] rounded-r-lg">
+                <span className="text-sm font-medium text-primary">{message.replyTo.sender.username}</span>
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                  {message.replyTo.content?.slice(0, 150) || '[File/Image]'}
+                </p>
               </div>
             )}
 
@@ -285,16 +300,17 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
           </div>
 
           {/* Hover action toolbar - Discord style floating */}
-          <div className="opacity-0 group-hover:opacity-100 absolute right-4 -top-3 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 rounded-md flex items-center p-0.5 transition-opacity z-10">
+          <div className="opacity-0 group-hover:opacity-100 absolute right-4 -top-3 bg-white dark:bg-[#1e3250] shadow-lg border border-blue-100 dark:border-[#2a4a6b] rounded-lg flex items-center p-0.5 transition-opacity z-10">
             <button
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-300"
+              className="p-1 hover:bg-blue-100 dark:hover:bg-[#243a54] rounded-md text-gray-500 dark:text-gray-300"
               title="Add Reaction"
             >
               <SmilePlus size={16} />
             </button>
             <button
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-300"
+              onClick={handleReply}
+              className="p-1 hover:bg-blue-100 dark:hover:bg-[#243a54] rounded-md text-gray-500 dark:text-gray-300"
               title="Reply"
             >
               <Reply size={16} />
@@ -302,7 +318,7 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
             {dropdownItems.length > 0 && (
               <Dropdown
                 trigger={
-                  <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-300" title="More">
+                  <button className="p-1 hover:bg-blue-100 dark:hover:bg-[#243a54] rounded-md text-gray-500 dark:text-gray-300" title="More">
                     <MoreHorizontal size={16} />
                   </button>
                 }
