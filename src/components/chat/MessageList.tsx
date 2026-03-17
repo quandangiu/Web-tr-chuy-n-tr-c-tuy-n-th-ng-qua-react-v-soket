@@ -3,6 +3,7 @@ import { useMessages } from '../../hooks/useMessages';
 import { MessageItem } from './MessageItem';
 import { TypingIndicator } from './TypingIndicator';
 import { useChannelStore } from '../../store/channelStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { ArrowDown, Loader2 } from 'lucide-react';
 
 interface MessageListProps {
@@ -23,6 +24,7 @@ export const MessageList: React.FC<MessageListProps> = ({ channelId }) => {
   const [showJumpBtn, setShowJumpBtn] = useState(false);
 
   const currentChannel = useChannelStore((s) => s.current);
+  const currentWorkspace = useWorkspaceStore((s) => s.current);
   const typingUsers = useChannelStore((s) => s.getTypingUsers(channelId));
 
   // Auto scroll to bottom khi có tin mới
@@ -117,6 +119,11 @@ export const MessageList: React.FC<MessageListProps> = ({ channelId }) => {
               channel.{' '}
               {currentChannel.description || 'Start chatting here!'}
             </p>
+            {(currentWorkspace?.aiEnabled ?? true) && (
+              <p className="text-xs text-primary mt-2">
+                AI đã bật: thử @AI recap hoặc @AI todo để lấy tóm tắt và việc cần làm.
+              </p>
+            )}
           </div>
         )}
 

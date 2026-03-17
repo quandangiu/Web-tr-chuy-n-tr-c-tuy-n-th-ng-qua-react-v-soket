@@ -3,6 +3,9 @@ export interface Workspace {
   name: string;
   slug: string;
   icon: string;
+  avatar?: string | null;
+  aiEnabled?: boolean;
+  description?: string;
   owner: string;
   members: WorkspaceMember[];
   inviteCode?: string;
@@ -25,4 +28,5 @@ export interface WorkspaceMember {
 export interface CreateWorkspacePayload {
   name: string;
   description?: string;
+  aiEnabled?: boolean;
 }

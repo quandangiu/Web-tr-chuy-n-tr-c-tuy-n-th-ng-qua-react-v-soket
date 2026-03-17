@@ -5,7 +5,9 @@ import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { ChannelList } from '../channel/ChannelList';
 import { CreateWorkspaceModal } from '../workspace/CreateWorkspaceModal';
+import { WorkspaceSettingsModal } from '../workspace/WorkspaceSettingsModal';
 import { CreateChannelModal } from '../channel/CreateChannelModal';
+import { EditChannelModal } from '../channel/EditChannelModal';
 import { Avatar } from '../ui/Avatar';
 import { VoiceChannelBar } from '../voice/VoiceChannelBar';
 import { Mic, Headphones, Settings } from 'lucide-react';
@@ -41,10 +43,14 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Workspace name banner */}
-      <div className="relative h-11 px-4 flex items-center border-b border-blue-100/50 dark:border-white/[0.06]">
+      <div 
+        className="relative h-11 px-4 flex items-center justify-between border-b border-blue-100/50 dark:border-white/[0.06] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
+        onClick={() => current && useUIStore.getState().setWorkspaceSettingsModal(true)}
+      >
         <h1 className="font-bold truncate text-gray-800 dark:text-white text-sm tracking-wide">
           {current?.name || 'Select Workspace'}
         </h1>
+        {current && <Settings size={14} className="text-gray-500" />}
       </div>
 
       {/* Channel list */}
@@ -93,7 +99,9 @@ export const Sidebar: React.FC = () => {
 
       {/* Modals */}
       <CreateWorkspaceModal />
+      <WorkspaceSettingsModal />
       <CreateChannelModal />
+      <EditChannelModal />
     </div>
   );
 };

@@ -5,9 +5,7 @@ type VoiceContextValue = ReturnType<typeof useVoiceChannel>;
 
 const VoiceContext = createContext<VoiceContextValue | null>(null);
 
-/**
- * Mount once at AppLayout level — exposes voice controls to the entire app
- */
+
 export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const value = useVoiceChannel();
   return <VoiceContext.Provider value={value}>{children}</VoiceContext.Provider>;

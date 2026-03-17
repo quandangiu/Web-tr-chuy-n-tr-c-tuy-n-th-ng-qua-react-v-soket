@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Client React app
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    container_name: chat-realtime-client
+    restart: unless-stopped
+
+  # Optional: Nếu có backend, uncomment phần này
+  # backend:
+  #   build:
+  #     context: ../backend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - MONGO_URI=mongodb://mongo:27017/chat-db
+  #   depends_on:
+  #     - mongo
+  #   container_name: chat-realtime-backend
+  #   restart: unless-stopped
+
+  # Optional: MongoDB
+  # mongo:
+  #   image: mongo:latest
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   container_name: chat-realtime-mongo
+  #   restart: unless-stopped
+
+# volumes:
+#   mongo-data:

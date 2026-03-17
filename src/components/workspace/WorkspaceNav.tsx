@@ -63,7 +63,7 @@ function getShortName(name: string): string {
 }
 
 /** Build context menu items for a workspace */
-function getWorkspaceMenuItems(ws: Workspace, currentUserId: string | undefined): ContextMenuItem[] {
+function getWorkspaceMenuItems(ws: Workspace, currentUserId: string | undefined, onOpenSettings?: () => void): ContextMenuItem[] {
   const isOwner = ws.owner === currentUserId ||
     ws.members?.some(m => {
       const uid = typeof m.user === 'string' ? m.user : m.user?._id;
@@ -95,8 +95,9 @@ function getWorkspaceMenuItems(ws: Workspace, currentUserId: string | undefined)
     {
       label: 'Chỉnh sửa workspace',
       icon: <Settings size={14} />,
-      onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
+      onClick: onOpenSettings || (() => toast('Tính năng sắp ra mắt!', { icon: '🔜' })),
       separator: true,
+      hidden: !isOwner,
     },
     {
       label: 'Rời workspace',
@@ -144,6 +145,7 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
   onSelect,
 }) => {
   const setCreateWorkspaceModal = useUIStore((s) => s.setCreateWorkspaceModal);
+  const setWorkspaceSettingsModal = useUIStore((s) => s.setWorkspaceSettingsModal);
   const currentUserId = useAuthStore((s) => s.user?._id);
 
   return (
@@ -179,12 +181,12 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
         const initials = getInitials(ws.name);
         const shortName = getShortName(ws.name);
         const decoPattern = getDecoPattern(ws.name);
-        const imageUrl = (ws as any).imageUrl as string | undefined;
+        const avatarUrl = (ws as any).avatar as string | undefined;
 
         return (
           <ContextMenu
             key={ws._id}
-            items={getWorkspaceMenuItems(ws, currentUserId)}
+            items={getWorkspaceMenuItems(ws, currentUserId, () => setWorkspaceSettingsModal(true))}
           >
             <div className="group relative flex flex-col items-center">
               {/* Workspace icon with unique gradient */}
@@ -209,8 +211,8 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
                       : 'rounded-2xl hover:rounded-xl hover:scale-105 hover:shadow-lg shadow-sm'
                   )}
                 >
-                  {imageUrl ? (
-                    <img src={imageUrl} alt={ws.name} className="w-full h-full object-cover" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={ws.name} className="w-full h-full object-cover" />
                   ) : ws.icon ? (
                     <span
                       className="w-full h-full flex items-center justify-center text-xl"

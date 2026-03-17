@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chat Realtime — Mô tả dự án phỏng vấn</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--text:#e2e8f0;--muted:#94a3b8;--border:#475569;--radius:12px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;scroll-behavior:smooth}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+/* NAV */
+.topnav{position:sticky;top:0;z-index:100;background:rgba(15,23,42,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 0}
+.topnav .container{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.topnav a{color:var(--muted);font-size:.85rem;font-weight:500;padding:4px 10px;border-radius:6px;transition:.2s}
+.topnav a:hover,.topnav a.active{color:#fff;background:var(--accent);text-decoration:none}
+.logo{font-size:1.1rem;font-weight:800;color:#fff !important;background:linear-gradient(135deg,var(--accent),var(--cyan))!important;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+/* HERO */
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(6,182,212,.1))}
+.hero h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#818cf8,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--muted);font-size:1.05rem;margin-top:10px;max-width:700px;margin-left:auto;margin-right:auto}
+.badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.badge{font-size:.75rem;padding:4px 12px;border-radius:20px;font-weight:600;border:1px solid var(--border);background:var(--card)}
+.badge.react{border-color:#61dafb;color:#61dafb}.badge.node{border-color:#68a063;color:#68a063}
+.badge.mongo{border-color:#4db33d;color:#4db33d}.badge.redis{border-color:#dc382d;color:#dc382d}
+.badge.socket{border-color:#010101;color:#fff;background:#25c2a0}.badge.webrtc{border-color:#f59e0b;color:#f59e0b}
+/* SECTIONS */
+section{padding:40px 0}
+section h2{font-size:1.6rem;font-weight:700;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid var(--accent);display:inline-block}
+section h3{font-size:1.15rem;font-weight:600;color:var(--accent2);margin:20px 0 10px}
+/* CARDS */
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:.3s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.15)}
+.card .icon{font-size:1.8rem;margin-bottom:10px}
+.card h4{font-size:1rem;font-weight:600;margin-bottom:8px}
+.card p,.card li{font-size:.88rem;color:var(--muted)}
+.card ul{list-style:none;padding:0}.card li{padding:3px 0}.card li::before{content:"▸ ";color:var(--accent2)}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:.88rem;margin:16px 0}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--card);color:var(--accent2);font-weight:600;position:sticky;top:0}
+tr:hover td{background:rgba(99,102,241,.05)}
+/* CODE */
+pre{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:.82rem;line-height:1.6;margin:12px 0}
+code{font-family:'Fira Code','Consolas',monospace}
+.tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:4px;font-weight:600;margin:2px}
+.t-green{background:rgba(34,197,94,.15);color:var(--green)}
+.t-orange{background:rgba(245,158,11,.15);color:var(--orange)}
+.t-red{background:rgba(239,68,68,.15);color:var(--red)}
+.t-cyan{background:rgba(6,182,212,.15);color:var(--cyan)}
+.t-purple{background:rgba(168,85,247,.15);color:#a855f7}
+/* FLOW */
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0;font-size:.88rem}
+.flow .step{background:var(--card);border:1px solid var(--border);padding:8px 16px;border-radius:8px;font-weight:500}
+.flow .arrow{color:var(--accent2);font-size:1.2rem}
+/* ACCORDION */
+details{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin:8px 0}
+details[open]{border-color:var(--accent)}
+summary{padding:14px 18px;cursor:pointer;font-weight:600;font-size:.95rem;list-style:none}
+summary::before{content:"▶ ";color:var(--accent2);font-size:.8rem}
+details[open] summary::before{content:"▼ "}
+details .inner{padding:0 18px 16px;font-size:.88rem;color:var(--muted)}
+details .inner ul{padding-left:18px}
+/* FOOTER */
+footer{text-align:center;padding:30px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border)}
+@media(max-width:640px){.hero h1{font-size:1.6rem}.grid-2,.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<nav class="topnav"><div class="container">
+<a class="logo" href="#">💬 Chat Realtime</a>
+<a href="#overview">Tổng quan</a>
+<a href="#tech">Công nghệ</a>
+<a href="#arch">Kiến trúc</a>
+<a href="#features">Chức năng</a>
+<a href="#realtime">Giải pháp Realtime</a>
+<a href="#webrtc">WebRTC</a>
+<a href="#security">Bảo mật</a>
+<a href="#db">Database</a>
+<a href="#structure">Cấu trúc</a>
+<a href="#interview">Phỏng vấn</a>
+</div></nav>
+
+<!-- HERO -->
+<header class="hero">
+<h1>🚀 Chat Realtime — Workspace Communication Platform</h1>
+<p>Nền tảng giao tiếp không gian làm việc trực tuyến thời gian thực với Socket.IO & WebRTC — Thiết kế giống Discord/Slack</p>
+<div class="badge-row">
+<span class="badge react">⚛ React 18</span>
+<span class="badge node">🟢 Node.js / Express</span>
+<span class="badge mongo">🍃 MongoDB</span>
+<span class="badge redis">🔴 Redis</span>
+<span class="badge socket">⚡ Socket.IO</span>
+<span class="badge webrtc">📹 WebRTC</span>
+</div>
+</header>
+
+<div class="container">
+
+<!-- 1. OVERVIEW -->
+<section id="overview">
+<h2>📋 1. Tổng quan dự án</h2>
+<p>Đây là ứng dụng <strong>fullstack real-time chat</strong> cho phép người dùng tạo <strong>Workspace</strong> (không gian làm việc), mời thành viên, chat qua các <strong>Channel</strong> (text/voice), gọi video P2P, và quản lý phân quyền — tương tự <strong>Discord/Slack</strong>.</p>
+
+<div class="grid grid-3" style="margin-top:20px">
+<div class="card"><div class="icon">🖥️</div><h4>Frontend (Client)</h4>
+<p>React 18 + Vite + TypeScript + TailwindCSS</p>
+<p><span class="tag t-cyan">Port 5173</span></p></div>
+
+<div class="card"><div class="icon">⚙️</div><h4>Backend (Server)</h4>
+<p>Express + Socket.IO + MongoDB + Redis</p>
+<p><span class="tag t-green">Port 3000</span></p></div>
+
+<div class="card"><div class="icon">🐳</div><h4>Deploy</h4>
+<p>Docker + Docker Compose + Cloudinary (CDN)</p>
+<p><span class="tag t-orange">Multi-stage build</span></p></div>
+</div>
+</section>
+
+<!-- 2. TECH -->
+<section id="tech">
+<h2>🛠 2. Công nghệ sử dụng</h2>
+<div class="grid grid-2">
+<div class="card">
+<h4>🎨 Frontend</h4>
+<table>
+<tr><td><strong>React 18</strong></td><td>UI component-based SPA</td></tr>
+<tr><td><strong>Vite 5</strong></td><td>Build tool nhanh, HMR tức thì</td></tr>
+<tr><td><strong>TypeScript</strong></td><td>Type safety, IntelliSense</td></tr>
+<tr><td><strong>TailwindCSS 3</strong></td><td>Utility-first CSS framework</td></tr>
+<tr><td><strong>Zustand</strong></td><td>State management nhẹ (thay Redux)</td></tr>
+<tr><td><strong>React Router v6</strong></td><td>Client-side routing, protected routes</td></tr>
+<tr><td><strong>TanStack Query</strong></td><td>Server state, cache, refetch</td></tr>
+<tr><td><strong>Axios</strong></td><td>HTTP client + interceptors</td></tr>
+<tr><td><strong>Socket.IO Client</strong></td><td>WebSocket realtime</td></tr>
+<tr><td><strong>SimplePeer</strong></td><td>WebRTC wrapper (voice/video)</td></tr>
+<tr><td><strong>CryptoJS</strong></td><td>AES encryption client-side</td></tr>
+<tr><td><strong>Lucide React</strong></td><td>Icon library</td></tr>
+</table>
+</div>
+<div class="card">
+<h4>⚙️ Backend</h4>
+<table>
+<tr><td><strong>Express 4</strong></td><td>REST API framework</td></tr>
+<tr><td><strong>Socket.IO 4</strong></td><td>Bi-directional realtime events</td></tr>
+<tr><td><strong>MongoDB + Mongoose</strong></td><td>NoSQL database + ODM</td></tr>
+<tr><td><strong>Redis 4</strong></td><td>In-memory cache (presence, voice, refresh tokens)</td></tr>
+<tr><td><strong>JWT</strong></td><td>Access Token (15m) + Refresh Token (7d)</td></tr>
+<tr><td><strong>Bcrypt</strong></td><td>Hash password</td></tr>
+<tr><td><strong>Cloudinary</strong></td><td>Cloud image/file storage</td></tr>
+<tr><td><strong>Multer</strong></td><td>File upload middleware</td></tr>
+<tr><td><strong>Zod</strong></td><td>Schema validation</td></tr>
+<tr><td><strong>Slugify</strong></td><td>URL-friendly workspace slug</td></tr>
+<tr><td><strong>CryptoJS + crypto</strong></td><td>AES encryption (messages)</td></tr>
+<tr><td><strong>CORS</strong></td><td>Cross-origin + LAN support</td></tr>
+</table>
+</div>
+</div>
+</section>
+
+<!-- 3. ARCHITECTURE -->
+<section id="arch">
+<h2>🏗 3. Kiến trúc hệ thống</h2>
+<div class="card" style="text-align:center;padding:30px">
+<pre style="text-align:left;display:inline-block"><code>
+┌─────────────────────────────────────────────────────────┐
+│                    CLIENT (React + Vite)                 │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌────────┐ │
+│  │ Zustand   │  │ Services │  │ Socket.IO │  │ WebRTC │ │
+│  │ Stores    │  │ (Axios)  │  │ Client    │  │ Peers  │ │
+│  └─────┬────┘  └────┬─────┘  └─────┬─────┘  └───┬────┘ │
+└────────┼────────────┼──────────────┼─────────────┼──────┘
+         │ state      │ REST API     │ WebSocket   │ P2P
+         ▼            ▼              ▼             ▼
+┌─────────────────────────────────────────────────────────┐
+│                SERVER (Express + Socket.IO)              │
+│  ┌────────────┐  ┌─────────────┐  ┌──────────────────┐ │
+│  │ Controllers│  │Socket       │  │ Middleware        │ │
+│  │ (REST API) │  │Handlers     │  │ (Auth,Upload,Err) │ │
+│  └─────┬──────┘  └──────┬──────┘  └──────────────────┘ │
+│        │                │                                │
+│  ┌─────▼──────┐  ┌──────▼──────┐  ┌──────────────────┐ │
+│  │ MongoDB    │  │ Redis       │  │ Cloudinary       │ │
+│  │ (Data)     │  │ (Cache)     │  │ (Files/Images)   │ │
+│  └────────────┘  └─────────────┘  └──────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+</div>
+
+<h3>Giao tiếp 2 chiều:</h3>
+<ul style="color:var(--muted);font-size:.9rem;padding-left:20px">
+<li><strong>REST API (HTTP)</strong> — CRUD operations: đăng ký, tạo workspace, gửi message, upload file</li>
+<li><strong>Socket.IO (WebSocket)</strong> — Real-time events: new message, typing, presence, voice signaling</li>
+<li><strong>WebRTC (P2P)</strong> — Peer-to-peer audio/video stream, không qua server</li>
+</ul>
+</section>
+
+<!-- 4. FEATURES -->
+<section id="features">
+<h2>✨ 4. Chức năng chi tiết</h2>
+
+<details open>
+<summary>👤 Authentication & User Management</summary>
+<div class="inner">
+<ul>
+<li><strong>Register/Login</strong> — bcrypt hash password, JWT access token (15 phút) + refresh token (7 ngày, httpOnly cookie)</li>
+<li><strong>Auto Refresh Token</strong> — Axios interceptor tự động gọi <code>/auth/refresh-token</code> khi nhận 401, queue các request pending</li>
+<li><strong>Refresh Token Revocation</strong> — Lưu trên Redis với TTL, logout xóa token khỏi Redis</li>
+<li><strong>User Profile</strong> — Avatar (Cloudinary), displayName, bio, status (online/offline/away)</li>
+<li><strong>Protected Routes</strong> — React Router wrapper kiểm tra auth state trước khi render</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>🏢 Workspace Management</summary>
+<div class="inner">
+<ul>
+<li><strong>CRUD Workspace</strong> — Tạo workspace tự động tạo channel #general, auto-generate slug + inviteCode</li>
+<li><strong>Invite System</strong> — Link invite <code>/workspace/join/:inviteCode</code>, auto-add vào public+voice channels</li>
+<li><strong>Member Roles</strong> — 3 role: <span class="tag t-red">Owner</span> <span class="tag t-orange">Admin</span> <span class="tag t-green">Member</span></li>
+<li><strong>Admin Actions</strong> — Thay đổi role, kick member, upload workspace avatar</li>
+<li><strong>Realtime Broadcast</strong> — Mọi thay đổi workspace emit qua Socket.IO tới tất cả members</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>📢 Channel System</summary>
+<div class="inner">
+<ul>
+<li><strong>4 loại channel:</strong>
+  <span class="tag t-green">Public</span> — Tất cả members tự động join
+  <span class="tag t-orange">Private</span> — Chỉ người được mời
+  <span class="tag t-purple">DM</span> — Tin nhắn riêng 1-1
+  <span class="tag t-cyan">Voice</span> — Kênh thoại WebRTC</li>
+<li><strong>Auto-sync</strong> — Khi fetch channels, tự add user vào public+voice channels nếu chưa có</li>
+<li><strong>Unread Count</strong> — Đếm tin nhắn chưa đọc per channel</li>
+<li><strong>Encryption</strong> — Channel có thể bật AES encryption, server tạo key, encrypt/decrypt tin nhắn</li>
+<li><strong>Realtime</strong> — Tạo/sửa/xóa channel broadcast tức thì qua socket</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>💬 Messaging</summary>
+<div class="inner">
+<ul>
+<li><strong>Message Types:</strong> <span class="tag t-green">text</span> <span class="tag t-cyan">image</span> <span class="tag t-orange">file</span> <span class="tag t-purple">system</span></li>
+<li><strong>File Upload</strong> — Multer → Cloudinary, hỗ trợ image/pdf/zip/docx, max 10MB</li>
+<li><strong>Reply (Quote)</strong> — Reply to message với populate sender info</li>
+<li><strong>Reactions</strong> — Emoji reactions (👍❤️😂😮😢🔥🎉👏), lưu bằng Map&lt;emoji, userId[]&gt;</li>
+<li><strong>Edit/Delete</strong> — Soft delete (isDeleted flag), edit tracking (isEdited + editedAt)</li>
+<li><strong>Read Receipt</strong> — readBy array, mark_read socket event batch update</li>
+<li><strong>Typing Indicator</strong> — typing_start/typing_stop events, debounce 2 giây</li>
+<li><strong>Search</strong> — MongoDB text index, full-text search trên content</li>
+<li><strong>Cursor Pagination</strong> — Infinite scroll, cursor-based (không dùng offset)</li>
+<li><strong>E2E Encryption</strong> — Khi channel bật encryption: server encrypt bằng AES trước khi lưu, decrypt khi trả về</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>🔊 Voice Channel (WebRTC Mesh)</summary>
+<div class="inner">
+<ul>
+<li><strong>Mesh topology</strong> — Mỗi user kết nối trực tiếp với tất cả users khác (SimplePeer)</li>
+<li><strong>State trên Redis</strong> — voice:channelId → JSON array VoiceMember[]</li>
+<li><strong>Mute/Deafen</strong> — Toggle mic (track.enabled), deafen (mute tất cả remote audio)</li>
+<li><strong>Speaking Indicator</strong> — AudioContext AnalyserNode, FFT frequency → detect speaking, emit qua socket</li>
+<li><strong>Auto-rejoin (F5)</strong> — Zustand persist session, socket reconnect → auto rejoin voice channel</li>
+<li><strong>Admin Controls</strong> — Force mute user, kick user from voice (chỉ owner/admin)</li>
+<li><strong>Stale Closure Fix</strong> — useRef mirrors cho session/currentUser, socket events register 1 lần (empty deps)</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>📹 Video Call (P2P)</summary>
+<div class="inner">
+<ul>
+<li><strong>Call Flow:</strong> call_user → incoming_call → accept/reject → WebRTC offer/answer/ICE</li>
+<li><strong>SimplePeer</strong> — Wrapper cho RTCPeerConnection, trickle ICE</li>
+<li><strong>ICE Servers:</strong> Google STUN + Metered TURN (TCP/UDP port 80/443)</li>
+<li><strong>Controls:</strong> Toggle camera, toggle mic, hang up</li>
+<li><strong>States:</strong> idle → calling → ringing → connected → ended</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>🟢 Presence System</summary>
+<div class="inner">
+<ul>
+<li><strong>Redis Key:</strong> <code>presence:userId</code> với TTL 5 phút</li>
+<li><strong>Heartbeat:</strong> Client gửi mỗi 4 phút, server refresh TTL</li>
+<li><strong>Status Change:</strong> Broadcast <code>user_status_changed</code> tới tất cả workspace rooms</li>
+<li><strong>Multi-tab:</strong> Kiểm tra còn socket nào connect trước khi set offline</li>
+<li><strong>Online Users:</strong> Redis MGET batch query khi join workspace</li>
+</ul>
+</div>
+</details>
+</section>
+
+<!-- 5. REALTIME SOLUTIONS -->
+<section id="realtime">
+<h2>⚡ 5. Giải pháp Realtime</h2>
+<div class="grid grid-2">
+<div class="card">
+<h4>🔌 Socket.IO — Lựa chọn chính</h4>
+<ul>
+<li><strong>Tại sao Socket.IO?</strong> — Auto-reconnect, fallback polling, room/namespace, acknowledgment callback</li>
+<li><strong>Transport:</strong> WebSocket (ưu tiên) → Long Polling (fallback)</li>
+<li><strong>Auth:</strong> JWT token trong <code>socket.handshake.auth</code>, middleware verify trước connection</li>
+<li><strong>Room pattern:</strong>
+  <code>user:userId</code> — DM, call
+  <code>workspace:wsId</code> — Presence, admin events
+  <code>channel:chId</code> — Messages, typing
+  <code>video:roomId</code> — Video call</li>
+<li><strong>4 Handler modules:</strong> Presence, Message, Voice, Video</li>
+</ul>
+</div>
+<div class="card">
+<h4>🔄 So sánh các giải pháp Realtime</h4>
+<table>
+<tr><th>Giải pháp</th><th>Ưu điểm</th><th>Nhược điểm</th></tr>
+<tr><td><strong>Polling</strong></td><td>Đơn giản</td><td>Delay, tốn bandwidth</td></tr>
+<tr><td><strong>Long Polling</strong></td><td>Realtime hơn</td><td>Tốn connection</td></tr>
+<tr><td><strong>SSE</strong></td><td>Server push, nhẹ</td><td>1 chiều, không hỗ trợ binary</td></tr>
+<tr><td><strong>WebSocket</strong></td><td>2 chiều, low latency</td><td>Phức tạp hơn</td></tr>
+<tr><td><strong>Socket.IO ✅</strong></td><td>WS + fallback + rooms + reconnect</td><td>Overhead nhỏ hơn raw WS</td></tr>
+<tr><td><strong>WebRTC</strong></td><td>P2P, ultra low latency</td><td>Chỉ cho media stream</td></tr>
+</table>
+</div>
+</div>
+
+<h3>Flow gửi tin nhắn realtime:</h3>
+<div class="flow">
+<div class="step">User A gõ tin nhắn</div><span class="arrow">→</span>
+<div class="step">Socket emit <code>send_message</code></div><span class="arrow">→</span>
+<div class="step">Server lưu MongoDB</div><span class="arrow">→</span>
+<div class="step"><code>io.to(channel:id).emit('new_message')</code></div><span class="arrow">→</span>
+<div class="step">User B nhận tin tức thì</div>
+</div>
+
+<h3>Flow Presence:</h3>
+<div class="flow">
+<div class="step">Socket connect</div><span class="arrow">→</span>
+<div class="step">Redis SET <code>presence:uid</code> TTL=5m</div><span class="arrow">→</span>
+<div class="step">Broadcast online</div><span class="arrow">→</span>
+<div class="step">Heartbeat mỗi 4m → EXPIRE refresh</div><span class="arrow">→</span>
+<div class="step">Disconnect → kiểm tra multi-tab → set offline</div>
+</div>
+</section>
+
+<!-- 6. WEBRTC -->
+<section id="webrtc">
+<h2>📹 6. WebRTC Deep Dive</h2>
+<div class="card">
+<h4>Voice Channel — Mesh Network</h4>
+<pre><code>  User A ◄────── WebRTC P2P ──────► User B
+    ▲                                  ▲
+    │          WebRTC P2P              │
+    └──────────────────────────────────┘
+                    │
+               User C (mỗi user kết nối trực tiếp với nhau)
+
+Signaling qua Socket.IO:
+  1. User A join → server broadcast voice_user_joined
+  2. Existing users tạo peer (non-initiator)
+  3. New user nhận voice_channel_updated → tạo peer (initiator) cho mỗi existing user
+  4. SimplePeer signal → socket.emit('voice_signal') → relay tới target
+  5. ICE candidates trao đổi → P2P connection established
+  6. Audio stream qua RTCPeerConnection (không qua server)</code></pre>
+</div>
+
+<div class="grid grid-2" style="margin-top:16px">
+<div class="card">
+<h4>🎙 Speaking Detection</h4>
+<ul>
+<li><code>AudioContext</code> → <code>createMediaStreamSource</code></li>
+<li><code>AnalyserNode</code> FFT size 256, smoothing 0.5</li>
+<li>Mỗi 100ms: tính average frequency → threshold > 8</li>
+<li>Emit <code>voice_speaking</code> qua socket cho remote users</li>
+</ul>
+</div>
+<div class="card">
+<h4>📹 Video Call — P2P 1-1</h4>
+<ul>
+<li><code>call_user</code> → <code>incoming_call</code> → accept/reject</li>
+<li>Initiator tạo offer → relay qua socket</li>
+<li>Callee tạo answer → relay ngược lại</li>
+<li>ICE candidates trickle theo real-time</li>
+<li>STUN (Google) + TURN (Metered) servers</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- 7. SECURITY -->
+<section id="security">
+<h2>🔒 7. Bảo mật</h2>
+<div class="grid grid-3">
+<div class="card"><div class="icon">🔑</div><h4>JWT Dual Token</h4>
+<p>Access Token 15 phút (Bearer header), Refresh Token 7 ngày (httpOnly cookie, Redis whitelist)</p></div>
+
+<div class="card"><div class="icon">🔐</div><h4>Password Hashing</h4>
+<p>Bcrypt với salt rounds, passwordHash field select: false</p></div>
+
+<div class="card"><div class="icon">🛡️</div><h4>CORS Policy</h4>
+<p>Whitelist origins + regex cho LAN IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)</p></div>
+
+<div class="card"><div class="icon">🔏</div><h4>Message Encryption</h4>
+<p>AES encryption per-channel, key stored server-side (select: false), encrypt/decrypt tại server</p></div>
+
+<div class="card"><div class="icon">✅</div><h4>Authorization</h4>
+<p>Middleware auth verify JWT. Controller-level check: member? admin? owner? per resource</p></div>
+
+<div class="card"><div class="icon">📋</div><h4>Validation</h4>
+<p>Zod schema validation middleware, Mongoose schema constraints (minlength, maxlength, enum, unique)</p></div>
+</div>
+</section>
+
+<!-- 8. DATABASE -->
+<section id="db">
+<h2>🗄 8. Database Design</h2>
+<div class="grid grid-2">
+<div class="card">
+<h4>MongoDB Collections (5 Models)</h4>
+<table>
+<tr><th>Model</th><th>Key Fields</th><th>Indexes</th></tr>
+<tr><td><strong>User</strong></td><td>username, email, passwordHash, avatar, status, lastSeen, bio</td><td>username (unique), email (unique)</td></tr>
+<tr><td><strong>Workspace</strong></td><td>name, slug, icon, avatar, owner, members[{user,role,joinedAt}], inviteCode</td><td>slug (unique), members.user</td></tr>
+<tr><td><strong>Channel</strong></td><td>workspace, name, type, members[], encryptionEnabled, encryptionKey, dmUsers[]</td><td>workspace, members, lastActivity</td></tr>
+<tr><td><strong>Message</strong></td><td>channel, sender, content, type, attachment, replyTo, reactions(Map), readBy[], isEdited, isDeleted</td><td>channel+_id, channel+createdAt, content(text)</td></tr>
+<tr><td><strong>Notification</strong></td><td>recipient, type(mention/dm/reaction/invite), actor, payload, isRead</td><td>recipient+isRead+createdAt</td></tr>
+</table>
+</div>
+<div class="card">
+<h4>Redis Keys</h4>
+<table>
+<tr><th>Pattern</th><th>Value</th><th>TTL</th></tr>
+<tr><td><code>presence:userId</code></td><td>"online"</td><td>5 phút</td></tr>
+<tr><td><code>refresh:userId:token</code></td><td>"1"</td><td>7 ngày</td></tr>
+<tr><td><code>voice:channelId</code></td><td>JSON VoiceMember[]</td><td>∞ (xóa khi empty)</td></tr>
+</table>
+</div>
+</div>
+</section>
+
+<!-- 9. STRUCTURE -->
+<section id="structure">
+<h2>📁 9. Cấu trúc thư mục</h2>
+<div class="grid grid-2">
+<div class="card">
+<h4>Frontend — <code>react/Chat Realtime/src/</code></h4>
+<pre><code>src/
+├── components/
+│   ├── channel/      # ChannelList, ChannelItem, CreateChannelModal...
+│   ├── chat/         # MessageList, MessageItem, MessageInput, TypingIndicator
+│   ├── layout/       # AppLayout, Header, Sidebar
+│   ├── ui/           # Avatar, Button, Modal, Input, ContextMenu, Dropdown
+│   ├── video/        # VideoCallModal, VideoStream, CallControls
+│   ├── voice/        # VoiceChannelBar
+│   └── workspace/    # WorkspaceNav, WorkspaceList, Settings, CreateModal
+├── context/          # VoiceContext (React Context)
+├── hooks/            # useMessages, useSocket, useTyping, useFileUpload
+│                     # useVoiceChannel (WebRTC mesh), useWebRTC (video P2P)
+├── pages/            # LoginPage, RegisterPage, WorkspacePage, ChannelPage
+├── services/         # api.ts (Axios), auth/channel/message/workspace/file/user
+├── socket/           # socket.ts, messageEvents, presenceEvents, voiceEvents
+├── store/            # Zustand: auth, channel, message, workspace, ui, voice
+├── types/            # TypeScript interfaces
+└── utils/            # constants, encryption, formatDate, cloudinary</code></pre>
+</div>
+<div class="card">
+<h4>Backend — <code>server/src/</code></h4>
+<pre><code>src/
+├── config/
+│   ├── db.ts            # MongoDB connection (Mongoose)
+│   ├── redis.ts         # Redis client (graceful fallback)
+│   └── cloudinary.ts    # Cloudinary config (lazy init)
+├── controllers/
+│   ├── auth.controller.ts      # register, login, refresh, logout, getMe
+│   ├── workspace.controller.ts # CRUD, members, roles, invite, avatar
+│   ├── channel.controller.ts   # CRUD, DM, encryption key, members
+│   ├── message.controller.ts   # CRUD, reactions, search, pagination
+│   ├── user.controller.ts      # profile, avatar upload
+│   └── file.controller.ts      # general file upload
+├── middleware/
+│   ├── auth.middleware.ts       # JWT verify → req.userId
+│   ├── upload.middleware.ts     # Multer + Cloudinary storage
+│   ├── validate.middleware.ts   # Zod schema validation
+│   └── errorHandler.ts         # Global error handler
+├── models/          # User, Workspace, Channel, Message, Notification
+├── routes/          # Express Router for each resource
+├── services/        # presence.service, notification.service, upload.service
+├── socket/
+│   ├── index.ts     # initSocket, auth middleware, register handlers
+│   ├── instance.ts  # Singleton IO instance (setIO/getIO)
+│   └── handlers/    # presence, message, voice, video handlers
+├── utils/           # jwt, bcrypt, encryption, apiResponse
+└── server.ts        # Entry point: Express + HTTP + Socket.IO + start</code></pre>
+</div>
+</div>
+</section>
+
+<!-- 10. INTERVIEW -->
+<section id="interview">
+<h2>🎯 10. Câu hỏi phỏng vấn & Cách trả lời</h2>
+
+<details open>
+<summary>❓ "Mô tả dự án của bạn?"</summary>
+<div class="inner">
+<p><em>"Em đã xây dựng một <strong>nền tảng giao tiếp workspace realtime</strong> tương tự Discord/Slack, sử dụng <strong>React + Node.js</strong>. Dự án cho phép người dùng tạo workspace, mời thành viên qua invite link, chat realtime qua các channel (text/voice), gọi video P2P, và quản lý phân quyền. Điểm nổi bật là hệ thống <strong>realtime hoàn chỉnh</strong> với Socket.IO cho messaging/presence, và <strong>WebRTC</strong> cho voice/video call, cùng với message encryption AES."</em></p>
+</div>
+</details>
+
+<details>
+<summary>❓ "Tại sao chọn Socket.IO thay vì WebSocket thuần?"</summary>
+<div class="inner">
+<p><em>"Socket.IO cung cấp nhiều tính năng mà raw WebSocket không có: <strong>auto-reconnection</strong> (10 attempts, 2s delay), <strong>fallback transport</strong> (polling khi WS bị block), <strong>room/namespace</strong> (broadcast tới nhóm user cụ thể), <strong>acknowledgment callback</strong> (xác nhận server nhận event). Điều này giúp em xử lý các edge case như mất kết nối, multi-tab, và F5 reload một cách dễ dàng."</em></p>
+</div>
+</details>
+
+<details>
+<summary>❓ "WebRTC hoạt động như thế nào trong dự án?"</summary>
+<div class="inner">
+<p><em>"Em dùng <strong>WebRTC mesh network</strong> cho voice channel — mỗi user kết nối P2P trực tiếp với nhau qua SimplePeer. <strong>Signaling</strong> (trao đổi offer/answer/ICE candidates) được relay qua Socket.IO. Em dùng <strong>STUN servers</strong> (Google) để discover public IP và <strong>TURN servers</strong> (Metered) để relay khi P2P bị NAT block. Speaking detection dùng <strong>AudioContext AnalyserNode</strong> phân tích FFT frequency mỗi 100ms."</em></p>
+</div>
+</details>
+
+<details>
+<summary>❓ "Giải thích hệ thống authentication?"</summary>
+<div class="inner">
+<p><em>"Em implement <strong>dual token strategy</strong>: Access Token (JWT, 15 phút, gửi qua Bearer header) và Refresh Token (JWT, 7 ngày, httpOnly cookie). Refresh token được lưu trên <strong>Redis</strong> để có thể revoke. Khi access token hết hạn, Axios interceptor tự động gọi refresh endpoint, đồng thời <strong>queue</strong> các request đang pending để tránh race condition. Socket.IO cũng authenticate bằng access token trong handshake."</em></p>
+</div>
+</details>
+
+<details>
+<summary>❓ "Redis dùng để làm gì?"</summary>
+<div class="inner">
+<p><em>"Redis đóng 3 vai trò: (1) <strong>Presence management</strong> — key presence:userId với TTL 5 phút, heartbeat refresh; (2) <strong>Refresh token whitelist</strong> — lưu token với TTL 7 ngày, cho phép revoke; (3) <strong>Voice channel state</strong> — lưu danh sách members đang trong voice channel, cập nhật khi join/leave/mute. Redis được chọn vì <strong>tốc độ O(1)</strong> và <strong>TTL tự động</strong> cho presence."</em></p>
+</div>
+</details>
+
+<details>
+<summary>❓ "Làm sao xử lý scalability?"</summary>
+<div class="inner">
+<ul>
+<li><strong>Cursor-based pagination</strong> thay vì offset (tránh skip overhead khi data lớn)</li>
+<li><strong>MongoDB indexes</strong> cho channel+createdAt, text search, members</li>
+<li><strong>Redis</strong> cho hot data (presence, voice state) tránh query DB</li>
+<li><strong>Cloudinary CDN</strong> cho file/image (không lưu server)</li>
+<li><strong>Docker</strong> multi-stage build, sẵn sàng horizontal scale</li>
+<li><strong>Socket.IO rooms</strong> broadcast chỉ tới users cần nhận</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary>❓ "Khó khăn lớn nhất và cách giải quyết?"</summary>
+<div class="inner">
+<ul>
+<li><strong>Stale closure trong voice channel hooks</strong> — Socket events register 1 lần (empty deps), nhưng cần access state hiện tại → dùng <code>useRef</code> mirrors, subscribe Zustand store trực tiếp</li>
+<li><strong>WebRTC auto-rejoin sau F5</strong> — Persist voice session trong Zustand, khi socket reconnect → detect persisted session → delay 1.5s (chờ auth + join_workspace) → auto rejoin</li>
+<li><strong>Multi-tab presence</strong> — Khi disconnect, kiểm tra <code>io.in(user:id).fetchSockets()</code> xem còn tab nào không trước khi set offline</li>
+<li><strong>Axios token refresh race condition</strong> — Queue pattern: nếu đang refresh thì queue request, khi done thì processQueue tất cả</li>
+</ul>
+</div>
+</details>
+</section>
+
+</div>
+
+<footer>
+<p>📄 Tài liệu này được tạo tự động từ source code — <strong>Chat Realtime Project</strong> — Fullstack TypeScript</p>
+<p>Frontend: <code>c:\Users\Quan\react\Chat Realtime</code> | Backend: <code>c:\Users\Quan\node.js\server_chat realtime\server</code></p>
+</footer>
+
+<script>
+// Smooth scroll for nav links
+document.querySelectorAll('.topnav a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+// Highlight active nav on scroll
+const sections=document.querySelectorAll('section[id]');
+const navLinks=document.querySelectorAll('.topnav a[href^="#"]');
+window.addEventListener('scroll',()=>{
+  let current='';
+  sections.forEach(s=>{if(scrollY>=s.offsetTop-100)current=s.id});
+  navLinks.forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+current)});
+});
+</script>
+</body>
+</html>

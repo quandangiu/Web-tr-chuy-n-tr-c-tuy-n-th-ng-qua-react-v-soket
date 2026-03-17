@@ -13,13 +13,25 @@ export const registerMessageEvents = (): (() => void) => {
 
   const currentUserId = useAuthStore.getState().user?._id;
 
+  const normalizeChannelId = (raw: Message['channel'] | any): string => {
+    if (typeof raw === 'string') return raw;
+    if (raw && typeof raw === 'object' && typeof raw._id === 'string') return raw._id;
+    return String(raw || '');
+  };
+
   // Nhận tin nhắn mới
   const handleNewMessage = ({ message }: { message: Message }) => {
-    useMessageStore.getState().addMessage(message.channel, message);
+    const channelId = normalizeChannelId((message as any).channel);
+    if (!channelId) return;
+
+    useMessageStore.getState().addMessage(channelId, {
+      ...message,
+      channel: channelId,
+    });
 
     // Increment unread nếu không phải tin nhắn của mình
     if (message.sender._id !== currentUserId) {
-      useChannelStore.getState().incrementUnread(message.channel);
+      useChannelStore.getState().incrementUnread(channelId);
     }
   };
 

@@ -1,6 +1,7 @@
 import api from './api';
 import type { ApiResponse } from '../types/api.types';
 import type { Channel, CreateChannelPayload, CreateDMPayload } from '../types/channel.types';
+import type { User } from '../types/user.types';
 
 export const channelService = {
   getByWorkspace: async (workspaceId: string) => {
@@ -40,5 +41,12 @@ export const channelService = {
       `/channels/${channelId}/key`
     );
     return res.data.data.key;
+  },
+
+  getMembers: async (channelId: string) => {
+    const res = await api.get<ApiResponse<User[]>>(
+      `/channels/${channelId}/members`
+    );
+    return res.data.data;
   },
 };

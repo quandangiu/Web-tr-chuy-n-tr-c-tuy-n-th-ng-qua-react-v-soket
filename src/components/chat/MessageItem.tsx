@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { useMessageStore } from '../../store/messageStore';
 import { useChannelStore } from '../../store/channelStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { messageService } from '../../services/message.service';
 import {
   SmilePlus, MoreHorizontal, Reply, Trash2,
@@ -27,7 +28,7 @@ interface MessageItemProps {
 }
 
 /** Build context menu items for a message */
-function getMessageMenuItems(message: Message, isOwn: boolean, onReply: () => void): ContextMenuItem[] {
+function getMessageMenuItems(message: Message, isOwn: boolean, canDelete: boolean, onReply: () => void): ContextMenuItem[] {
   return [
     {
       label: 'Trả lời',
@@ -76,7 +77,7 @@ function getMessageMenuItems(message: Message, isOwn: boolean, onReply: () => vo
       label: 'Xóa',
       icon: <Trash2 size={14} />,
       danger: true,
-      hidden: !isOwn,
+      hidden: !canDelete,
       onClick: async () => {
         try {
           await messageService.delete(message._id);
@@ -130,12 +131,68 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
     const currentUserId = useAuthStore((s) => s.user?._id);
     const setLightboxUrl = useUIStore((s) => s.setLightboxUrl);
     const setReplyingTo = useChannelStore((s) => s.setReplyingTo);
+    const currentWorkspace = useWorkspaceStore((s) => s.current);
     const isOwn = message.sender._id === currentUserId;
+    const myRole = React.useMemo(() => {
+      if (!currentUserId || !currentWorkspace?.members) return 'member';
+      const member = currentWorkspace.members.find((m) => {
+        if (typeof m.user === 'string') return m.user === currentUserId;
+        return m.user?._id === currentUserId;
+      });
+      return member?.role || 'member';
+    }, [currentWorkspace?.members, currentUserId]);
+    const canDelete = isOwn || myRole === 'admin' || myRole === 'owner';
 
     if (message.isDeleted) {
       return (
         <div className="px-4 py-1 text-sm text-gray-400 dark:text-chat-muted italic">
           🗑️ Tin nhắn đã bị xóa
+        </div>
+      );
+    }
+
+    if (message.type === 'system') {
+      const isAISupport = message.content.startsWith('[AI Support]');
+      const aiBody = isAISupport
+        ? message.content.replace(/^\[AI Support\]\s*/i, '').trim()
+        : message.content;
+      const aiLines = aiBody.split('\n').filter((line, idx, arr) => !(line.trim() === '' && arr[idx - 1]?.trim() === ''));
+
+      return (
+        <div className="px-4 py-2 flex items-center justify-center">
+          <div className={`max-w-[85%] rounded-2xl px-3 py-2 border ${
+            isAISupport
+              ? 'bg-gradient-to-br from-cyan-50/95 to-sky-50/85 dark:from-[#14344a] dark:to-[#173a54] text-cyan-900 dark:text-cyan-100 border-cyan-200/80 dark:border-cyan-700/40 shadow-[0_10px_28px_-16px_rgba(34,211,238,0.5)]'
+              : 'bg-blue-100/80 dark:bg-[#243a54] text-blue-900 dark:text-blue-100 border-blue-200/80 dark:border-[#2f577d]'
+          }`}>
+            {isAISupport && (
+              <p className="text-[11px] font-semibold tracking-wide opacity-85 mb-1.5">AI Support</p>
+            )}
+            <div className="text-xs whitespace-pre-wrap break-words leading-relaxed space-y-1">
+              {aiLines.map((line, idx) => {
+                const isRed = line.trim().startsWith('[RED]');
+                const text = isRed ? line.replace(/^\[RED\]/, '') : line;
+                const trimmed = text.trim();
+                const isHeader = /:$/.test(trimmed) || /^recap/i.test(trimmed);
+                const isBullet = /^-\s+/.test(trimmed);
+                const cleanText = isBullet ? trimmed.replace(/^-\s+/, '') : text;
+                return (
+                  <div key={`${message._id}-${idx}`} className={isHeader ? 'pt-0.5' : ''}>
+                    <p
+                      className={clsx(
+                        isRed ? 'text-red-500 dark:text-red-400 font-medium' : 'text-cyan-900/95 dark:text-cyan-100/95',
+                        isHeader && 'font-semibold text-[12px] text-cyan-900 dark:text-cyan-100',
+                        isBullet && 'pl-3 relative'
+                      )}
+                    >
+                      {isBullet && <span className="absolute left-0 top-0 opacity-70">•</span>}
+                      {cleanText}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       );
     }
@@ -175,13 +232,13 @@ export const MessageItem: React.FC<MessageItemProps> = memo(
     };
 
     const dropdownItems = [
-      ...(isOwn
+      ...(canDelete
         ? [{ label: 'Xóa', icon: <Trash2 size={14} />, onClick: handleDelete, danger: true }]
         : []),
     ];
 
     return (
-      <ContextMenu items={getMessageMenuItems(message, isOwn, handleReply)}>
+      <ContextMenu items={getMessageMenuItems(message, isOwn, canDelete, handleReply)}>
         <div
           className={clsx(
             'group relative flex hover:bg-blue-50/50 dark:hover:bg-[#1e3250] -mx-4 px-4 py-1 transition-colors',

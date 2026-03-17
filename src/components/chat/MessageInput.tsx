@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { getSocket } from '../../socket/socket';
 import { useTyping } from '../../hooks/useTyping';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { useChannelStore, type ReplyingTo } from '../../store/channelStore';
+import { useChannelStore } from '../../store/channelStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { Send, Plus, X, Loader2, Smile, Image, Reply } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Attachment } from '../../types/message.types';
@@ -31,10 +31,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   const currentChannel = useChannelStore((s) => s.current);
+  const currentWorkspace = useWorkspaceStore((s) => s.current);
   const replyingTo = useChannelStore((s) => s.replyingTo);
   const clearReplyingTo = useChannelStore((s) => s.clearReplyingTo);
   const { startTyping, stopTyping } = useTyping(channelId);
   const { upload, uploading, progress } = useFileUpload();
+  const aiEnabled = currentWorkspace?.aiEnabled ?? true;
+
+  const insertAICommand = useCallback((command: string) => {
+    setContent(command);
+    textInputRef.current?.focus();
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -151,6 +158,40 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
       {/* Discord-style input container */}
       <div className="bg-blue-50 dark:bg-[#1e3250] rounded-xl px-4 py-2.5 shadow-sm border border-blue-100 dark:border-[#243a54]">
+        {aiEnabled && (
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] text-gray-500 dark:text-gray-400">AI nhanh:</span>
+            <button
+              type="button"
+              className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-[#243a54] text-primary hover:bg-white dark:hover:bg-[#2d4765]"
+              onClick={() => insertAICommand('@AI help')}
+            >
+              @AI help
+            </button>
+            <button
+              type="button"
+              className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-[#243a54] text-primary hover:bg-white dark:hover:bg-[#2d4765]"
+              onClick={() => insertAICommand('@AI stats')}
+            >
+              @AI stats
+            </button>
+            <button
+              type="button"
+              className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-[#243a54] text-primary hover:bg-white dark:hover:bg-[#2d4765]"
+              onClick={() => insertAICommand('@AI summarize')}
+            >
+              @AI summarize
+            </button>
+            <button
+              type="button"
+              className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 dark:bg-[#243a54] text-primary hover:bg-white dark:hover:bg-[#2d4765]"
+              onClick={() => insertAICommand('@AI recap')}
+            >
+              @AI recap
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex items-center">
           {/* Add file button */}
           <button
@@ -176,7 +217,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             value={content}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder={`Message ${currentChannel ? '#' + currentChannel.name : ''}`}
+            placeholder={`Message ${currentChannel ? '#' + currentChannel.name : ''}${aiEnabled ? ' (Tip: @AI help)' : ''}`}
             rows={1}
             className="bg-transparent border-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-500 flex-1 py-1 text-sm resize-none focus:outline-none max-h-32"
             style={{
@@ -226,6 +267,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           </span>{' '}
           to add a new line
         </span>
+        {aiEnabled && (
+          <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-2">
+            | AI: gõ <span className="font-semibold">@AI help</span>, <span className="font-semibold">@AI recap</span> hoặc <span className="font-semibold">@AI todo</span>
+          </span>
+        )}
       </div>
     </div>
   );

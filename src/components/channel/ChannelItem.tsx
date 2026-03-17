@@ -8,6 +8,7 @@ import type { Channel, VoiceMember } from '../../types/channel.types';
 import { useChannelStore } from '../../store/channelStore';
 import { useAuthStore } from '../../store/authStore';
 import { useVoiceStore } from '../../store/voiceStore';
+import { useUIStore } from '../../store/uiStore';
 import { ContextMenu } from '../ui/ContextMenu';
 import type { ContextMenuItem } from '../ui/ContextMenu';
 import { channelService } from '../../services/channel.service';
@@ -135,14 +136,14 @@ const VoiceMemberRow: React.FC<{ member: VoiceMember; isMe: boolean }> = ({ memb
 };
 
 /** Build context menu items for a channel */
-function getChannelMenuItems(channel: Channel): ContextMenuItem[] {
+function getChannelMenuItems(channel: Channel, onEdit: () => void): ContextMenuItem[] {
   const isVoice = channel.type === 'voice';
 
   return [
     {
       label: 'Chỉnh sửa kênh',
       icon: <Edit3 size={14} />,
-      onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
+      onClick: onEdit,
     },
     {
       label: 'Tắt thông báo',
@@ -206,6 +207,7 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
   onClick,
 }) => {
   const voiceMembers = useChannelStore((s) => s.voiceMembers.get(channel._id) ?? []);
+  const setEditChannelModal = useUIStore((s) => s.setEditChannelModal);
   const currentUserId = useAuthStore((s) => s.user?._id);
   const voiceSession = useVoiceStore((s) => s.session);
   const isVoice = channel.type === 'voice';
@@ -285,7 +287,7 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
   return (
     <div>
       {/* Channel row */}
-      <ContextMenu items={getChannelMenuItems(channel)}>
+      <ContextMenu items={getChannelMenuItems(channel, () => setEditChannelModal(true, channel._id))}>
         <button
           onClick={onClick}
           className={clsx(

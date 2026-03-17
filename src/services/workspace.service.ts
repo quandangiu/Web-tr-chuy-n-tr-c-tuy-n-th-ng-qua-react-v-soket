@@ -23,6 +23,17 @@ export const workspaceService = {
     return res.data.data;
   },
 
+  uploadAvatar: async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const res = await api.put<ApiResponse<Workspace>>(`/workspaces/${id}/avatar`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data.data;
+  },
+
   delete: async (id: string) => {
     const res = await api.delete<ApiResponse<null>>(`/workspaces/${id}`);
     return res.data;
@@ -41,6 +52,14 @@ export const workspaceService = {
       `/workspaces/${workspaceId}/members/${userId}`
     );
     return res.data;
+  },
+
+  updateMemberRole: async (workspaceId: string, userId: string, role: string) => {
+    const res = await api.put<ApiResponse<Workspace>>(
+      `/workspaces/${workspaceId}/members/${userId}/role`,
+      { role }
+    );
+    return res.data.data;
   },
 
   joinByInvite: async (inviteCode: string) => {
