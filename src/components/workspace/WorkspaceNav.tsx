@@ -1,5 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Zap, CheckCheck, BellOff, UserPlus, Settings, LogOut, Trash2 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
@@ -144,15 +145,23 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
   current,
   onSelect,
 }) => {
+  const navigate = useNavigate();
   const setCreateWorkspaceModal = useUIStore((s) => s.setCreateWorkspaceModal);
   const setWorkspaceSettingsModal = useUIStore((s) => s.setWorkspaceSettingsModal);
   const currentUserId = useAuthStore((s) => s.user?._id);
+  const setCurrentWorkspace = useWorkspaceStore((s) => s.setCurrent);
+
+  const goHome = () => {
+    setCurrentWorkspace(null);
+    navigate('/');
+  };
 
   return (
     <nav className="w-[78px] bg-gradient-to-b from-blue-50 to-blue-100/80 dark:from-[#0a1628] dark:to-[#0d1f38] flex flex-col items-center py-3 gap-3 flex-shrink-0 border-r border-blue-100/50 dark:border-[#1a3050]/50 overflow-y-auto scrollbar-hide">
       {/* Home / Logo button */}
       <div className="group relative flex flex-col items-center">
         <button
+          onClick={goHome}
           className={clsx(
             'w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-white transition-all duration-300',
             'bg-gradient-to-br from-primary to-accent shadow-lg',

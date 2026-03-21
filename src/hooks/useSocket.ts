@@ -4,6 +4,8 @@ import { connectSocket, disconnectSocket, getSocket } from '../socket/socket';
 import { registerMessageEvents } from '../socket/messageEvents';
 import { registerPresenceEvents } from '../socket/presenceEvents';
 import { registerVoiceChannelEvents } from '../socket/voiceChannelEvents';
+import { registerTaskEvents } from '../socket/taskEvents';
+import { registerChannelEvents } from '../socket/channelEvents';
 
 /**
  * Hook quản lý kết nối Socket.io
@@ -32,7 +34,9 @@ export const useSocket = () => {
       const cleanupMessage = registerMessageEvents();
       const cleanupPresence = registerPresenceEvents();
       const cleanupVoice = registerVoiceChannelEvents();
-      cleanupRef.current.push(cleanupMessage, cleanupPresence, cleanupVoice);
+      const cleanupTask = registerTaskEvents();
+      const cleanupChannel = registerChannelEvents();
+      cleanupRef.current.push(cleanupMessage, cleanupPresence, cleanupVoice, cleanupTask, cleanupChannel);
     };
 
     if (socket.connected) {
@@ -46,7 +50,15 @@ export const useSocket = () => {
       cleanupRef.current = [];
       disconnectSocket();
     };
-  }, [isAuthenticated, accessToken]);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) return;
+    const socket = getSocket();
+    if (!socket) return;
+    // Keep auth token fresh for future reconnect handshakes without forcing reconnect now.
+    socket.auth = { token: accessToken };
+  }, [accessToken, isAuthenticated]);
 
   const emit = useCallback(
     (event: string, data?: unknown) => {

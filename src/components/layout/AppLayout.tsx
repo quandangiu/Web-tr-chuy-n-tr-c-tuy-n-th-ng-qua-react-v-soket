@@ -7,6 +7,7 @@ import { useUIStore, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH } from '../../store/ui
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { workspaceService } from '../../services/workspace.service';
 import { useSocket } from '../../hooks/useSocket';
+import { joinWorkspace } from '../../socket/socket';
 import { VoiceProvider } from '../../context/VoiceContext';
 import clsx from 'clsx';
 
@@ -54,6 +55,12 @@ export const AppLayout: React.FC = () => {
     };
     load();
   }, []);
+
+  // Join workspace room để nhận realtime channel/presence updates
+  useEffect(() => {
+    if (!current?._id) return;
+    joinWorkspace(current._id);
+  }, [current?._id]);
 
   const handleSelectWorkspace = (ws: typeof current) => {
     if (!ws) return;

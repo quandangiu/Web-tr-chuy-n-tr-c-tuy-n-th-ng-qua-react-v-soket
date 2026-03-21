@@ -12,12 +12,14 @@ interface DropdownProps {
   trigger: React.ReactNode;
   items: DropdownItem[];
   align?: 'left' | 'right';
+  side?: 'top' | 'bottom';
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
   trigger,
   items,
   align = 'right',
+  side = 'bottom',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -40,8 +42,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
       {isOpen && (
         <div
           className={clsx(
-            'absolute z-50 mt-1 min-w-[160px] rounded-lg bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-gray-700 shadow-xl py-1',
-            align === 'right' ? 'right-0' : 'left-0'
+            'absolute z-50 min-w-[160px] rounded-lg bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-gray-700 shadow-xl py-1',
+            align === 'right' ? 'right-0' : 'left-0',
+            side === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'
           )}
         >
           {items.map((item, i) => (

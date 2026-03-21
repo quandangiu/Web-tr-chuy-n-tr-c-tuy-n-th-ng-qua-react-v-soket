@@ -14,6 +14,11 @@ interface ChannelTaskPanelProps {
   panelWidth?: number;
 }
 
+type TaskRealtimeDetail =
+  | { type: 'created'; task: Task }
+  | { type: 'updated'; task: Task }
+  | { type: 'deleted'; taskId: string; channelId: string; workspaceId?: string };
+
 const statusLabel: Record<TaskStatus, string> = {
   todo: 'Todo',
   in_progress: 'In Progress',
@@ -97,6 +102,14 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
     window.dispatchEvent(new Event('task-summary-refresh'));
   };
 
+  const upsertTaskList = (list: Task[], incomingTask: Task) => {
+    const exists = list.some((task) => task._id === incomingTask._id);
+    if (exists) {
+      return list.map((task) => (task._id === incomingTask._id ? incomingTask : task));
+    }
+    return [incomingTask, ...list];
+  };
+
   const loadTasks = async () => {
     setLoading(true);
     try {
@@ -117,6 +130,32 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
   useEffect(() => {
     if (!channelId) return;
     channelService.getMembers(channelId).then(setMembers).catch(() => setMembers([]));
+  }, [channelId]);
+
+  useEffect(() => {
+    const onTaskSocketEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<TaskRealtimeDetail>;
+      const detail = customEvent.detail;
+      if (!detail) return;
+
+      if (detail.type === 'deleted') {
+        if (detail.channelId !== channelId) return;
+        setTasks((prev) => prev.filter((task) => task._id !== detail.taskId));
+        return;
+      }
+
+      const incomingTask = detail.task;
+      if (!incomingTask || incomingTask.channel !== channelId) return;
+
+      setTasks((prev) => {
+        return upsertTaskList(prev, incomingTask);
+      });
+    };
+
+    window.addEventListener('task-socket-event', onTaskSocketEvent as EventListener);
+    return () => {
+      window.removeEventListener('task-socket-event', onTaskSocketEvent as EventListener);
+    };
   }, [channelId]);
 
   const resetForm = () => {
@@ -177,7 +216,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
       }
 
       const task = await taskService.create(payload);
-      setTasks((prev) => [task, ...prev]);
+      setTasks((prev) => upsertTaskList(prev, task));
       emitTaskSummaryRefresh();
       resetForm();
     } catch {
@@ -188,6 +227,13 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
   };
 
   const updateStatus = async (taskId: string, status: TaskStatus) => {
+    const targetTask = tasks.find((t) => t._id === taskId);
+    if (!targetTask) return;
+    if ((targetTask.taskType || 'work') === 'work' && !canDragWorkTask(targetTask)) {
+      toast.error('Bạn chỉ được sửa trạng thái task của mình');
+      return;
+    }
+
     const old = tasks;
     setTasks((prev) => prev.map((t) => (t._id === taskId ? { ...t, status } : t)));
     try {
@@ -316,6 +362,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
       <div className="flex items-start gap-2">
         <button
           onClick={() => updateStatus(task._id, task.status === 'done' ? 'todo' : 'done')}
+          disabled={(task.taskType || 'work') === 'work' && !canDragWorkTask(task)}
           className="mt-0.5 text-primary"
           title="Toggle done"
         >
@@ -396,6 +443,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
               <select
                 value={task.status}
                 onChange={(e) => updateStatus(task._id, e.target.value as TaskStatus)}
+                disabled={!canDragWorkTask(task)}
                 className="bg-transparent border border-blue-100 dark:border-[#2a4a6b] rounded px-1.5 py-0.5"
               >
                 <option value="todo">Todo</option>

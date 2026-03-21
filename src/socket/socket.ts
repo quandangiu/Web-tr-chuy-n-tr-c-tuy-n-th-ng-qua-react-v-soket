@@ -3,12 +3,20 @@ import { SOCKET_URL, HEARTBEAT_INTERVAL_MS } from '../utils/constants';
 
 let socket: Socket | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval>;
+let joinedWorkspaceId: string | null = null;
+let joinedChannelId: string | null = null;
 
 /**
  * Kết nối socket với server, gửi access token để auth
  */
 export const connectSocket = (accessToken: string): Socket => {
-  if (socket?.connected) return socket;
+  if (socket) {
+    socket.auth = { token: accessToken };
+    if (!socket.connected) {
+      socket.connect();
+    }
+    return socket;
+  }
 
   socket = io(SOCKET_URL, {
     auth: { token: accessToken },
@@ -20,6 +28,13 @@ export const connectSocket = (accessToken: string): Socket => {
 
   socket.on('connect', () => {
     console.log('[Socket] Connected:', socket!.id);
+    // Rejoin rooms sau reconnect để không mất realtime events
+    if (joinedWorkspaceId) {
+      socket?.emit('join_workspace', { workspaceId: joinedWorkspaceId });
+    }
+    if (joinedChannelId) {
+      socket?.emit('join_channel', { channelId: joinedChannelId });
+    }
     // Heartbeat mỗi 4 phút để duy trì presence
     heartbeatTimer = setInterval(() => {
       socket?.emit('heartbeat');
@@ -45,6 +60,8 @@ export const disconnectSocket = (): void => {
   clearInterval(heartbeatTimer);
   socket?.disconnect();
   socket = null;
+  joinedWorkspaceId = null;
+  joinedChannelId = null;
 };
 
 /**
@@ -56,6 +73,7 @@ export const getSocket = (): Socket | null => socket;
  * Join workspace room
  */
 export const joinWorkspace = (workspaceId: string): void => {
+  joinedWorkspaceId = workspaceId;
   socket?.emit('join_workspace', { workspaceId });
 };
 
@@ -63,6 +81,7 @@ export const joinWorkspace = (workspaceId: string): void => {
  * Join channel room
  */
 export const joinChannel = (channelId: string): void => {
+  joinedChannelId = channelId;
   socket?.emit('join_channel', { channelId });
 };
 
@@ -70,6 +89,9 @@ export const joinChannel = (channelId: string): void => {
  * Leave channel room
  */
 export const leaveChannel = (channelId: string): void => {
+  if (joinedChannelId === channelId) {
+    joinedChannelId = null;
+  }
   socket?.emit('leave_channel', { channelId });
 };
 

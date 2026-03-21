@@ -49,4 +49,19 @@ export const channelService = {
     );
     return res.data.data;
   },
+
+  addMember: async (channelId: string, userId: string) => {
+    const res = await api.post<ApiResponse<Channel>>(
+      `/channels/${channelId}/members`,
+      { userId }
+    );
+    return res.data.data;
+  },
+
+  removeMember: async (channelId: string, userId: string) => {
+    const res = await api.delete<ApiResponse<Channel>>(
+      `/channels/${channelId}/members/${userId}`
+    );
+    return res.data.data;
+  },
 };

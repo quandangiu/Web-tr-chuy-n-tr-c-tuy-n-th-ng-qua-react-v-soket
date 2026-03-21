@@ -9,8 +9,10 @@ import { useChannelStore } from '../../store/channelStore';
 import { useAuthStore } from '../../store/authStore';
 import { useVoiceStore } from '../../store/voiceStore';
 import { useUIStore } from '../../store/uiStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { ContextMenu } from '../ui/ContextMenu';
 import type { ContextMenuItem } from '../ui/ContextMenu';
+import { ManageChannelMembersModal } from './ManageChannelMembersModal';
 import { channelService } from '../../services/channel.service';
 import toast from 'react-hot-toast';
 
@@ -40,7 +42,11 @@ function useVoiceTimer(joinedAt: string | undefined): string {
 }
 
 /** Build context menu items for voice member row */
-function getVoiceMemberMenuItems(member: VoiceMember, isMe: boolean): ContextMenuItem[] {
+function getVoiceMemberMenuItems(
+  member: VoiceMember,
+  isMe: boolean,
+  canManageOthers: boolean
+): ContextMenuItem[] {
   return [
     {
       label: 'Xem hồ sơ',
@@ -58,32 +64,36 @@ function getVoiceMemberMenuItems(member: VoiceMember, isMe: boolean): ContextMen
       label: member.isMuted ? 'Bật mic người này' : 'Tắt mic người này',
       icon: <MicOff size={14} />,
       onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
-      hidden: isMe,
+      hidden: isMe || !canManageOthers,
     },
     {
       label: 'Kick khỏi voice',
       icon: <LogOut size={14} />,
       danger: true,
       onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
-      hidden: isMe,
+      hidden: isMe || !canManageOthers,
     },
     {
       label: 'Chỉnh âm lượng',
       icon: <Volume1 size={14} />,
       onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
-      hidden: isMe,
+      hidden: isMe || !canManageOthers,
       separator: true,
     },
   ];
 }
 
 // Avatar nhỏ trong voice member list — sáng lên khi user đang nói
-const VoiceMemberRow: React.FC<{ member: VoiceMember; isMe: boolean }> = ({ member, isMe }) => {
+const VoiceMemberRow: React.FC<{
+  member: VoiceMember;
+  isMe: boolean;
+  canManageOthers: boolean;
+}> = ({ member, isMe, canManageOthers }) => {
   const timer = useVoiceTimer(member.joinedAt);
   const isSpeaking = useChannelStore((s) => s.speakingUsers.has(member.userId));
 
   return (
-    <ContextMenu items={getVoiceMemberMenuItems(member, isMe)}>
+    <ContextMenu items={getVoiceMemberMenuItems(member, isMe, canManageOthers)}>
       <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700/50 group/vm">
         <div className="relative flex-shrink-0">
           {member.avatar ? (
@@ -136,14 +146,23 @@ const VoiceMemberRow: React.FC<{ member: VoiceMember; isMe: boolean }> = ({ memb
 };
 
 /** Build context menu items for a channel */
-function getChannelMenuItems(channel: Channel, onEdit: () => void): ContextMenuItem[] {
+function getChannelMenuItems(
+  channel: Channel,
+  onEdit: () => void,
+  onManageMembers: () => void,
+  canManageMembers: boolean,
+  canEditChannel: boolean,
+  canDeleteChannel: boolean
+): ContextMenuItem[] {
   const isVoice = channel.type === 'voice';
+  const isPrivate = channel.type === 'private';
 
   return [
     {
       label: 'Chỉnh sửa kênh',
       icon: <Edit3 size={14} />,
       onClick: onEdit,
+      hidden: !canEditChannel,
     },
     {
       label: 'Tắt thông báo',
@@ -158,6 +177,19 @@ function getChannelMenuItems(channel: Channel, onEdit: () => void): ContextMenuI
         navigator.clipboard.writeText(link);
         toast.success('Đã sao chép link kênh!');
       },
+    },
+    {
+      label: 'Thêm user',
+      icon: <UserPlus size={14} />,
+      onClick: onManageMembers,
+      hidden: !isPrivate || !canManageMembers,
+    },
+    {
+      label: 'Xóa user',
+      icon: <Trash2 size={14} />,
+      onClick: onManageMembers,
+      hidden: !isPrivate || !canManageMembers,
+      separator: isPrivate && canManageMembers,
     },
     {
       label: 'Ghim kênh',
@@ -183,6 +215,7 @@ function getChannelMenuItems(channel: Channel, onEdit: () => void): ContextMenuI
       label: 'Xóa kênh',
       icon: <Trash2 size={14} />,
       danger: true,
+      hidden: !canDeleteChannel,
       onClick: async () => {
         if (!confirm(`Bạn có chắc muốn xóa kênh "${channel.name}"?`)) return;
         try {
@@ -208,11 +241,31 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
 }) => {
   const voiceMembers = useChannelStore((s) => s.voiceMembers.get(channel._id) ?? []);
   const setEditChannelModal = useUIStore((s) => s.setEditChannelModal);
+  const updateChannel = useChannelStore((s) => s.updateChannel);
+  const currentWorkspace = useWorkspaceStore((s) => s.current);
   const currentUserId = useAuthStore((s) => s.user?._id);
   const voiceSession = useVoiceStore((s) => s.session);
+  const [manageMembersOpen, setManageMembersOpen] = useState(false);
   const isVoice = channel.type === 'voice';
   const hasVoiceMembers = voiceMembers.length > 0;
   const isMeInVoice = isVoice && voiceSession?.channelId === channel._id;
+
+  const getWorkspaceMemberId = (member: { user: unknown }): string | null => {
+    const user = member?.user as any;
+    if (!user) return null;
+    if (typeof user === 'string') return user;
+    return typeof user._id === 'string' ? user._id : null;
+  };
+
+  const myWorkspaceRole = currentWorkspace?.members.find((m) => {
+    const uid = getWorkspaceMemberId(m as any);
+    return !!uid && uid === currentUserId;
+  })?.role;
+  const isAdminOrOwner = myWorkspaceRole === 'owner' || myWorkspaceRole === 'admin';
+  const canEditOwnChannel = !!currentUserId && channel.createdBy === currentUserId;
+  const canEditChannel = isAdminOrOwner || canEditOwnChannel;
+  const canDeleteChannel = canEditChannel;
+  const canManagePrivateMembers = myWorkspaceRole === 'owner' || myWorkspaceRole === 'admin';
 
   // Channel icon — modern styled with glow
   const renderChannelIcon = () => {
@@ -287,7 +340,16 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
   return (
     <div>
       {/* Channel row */}
-      <ContextMenu items={getChannelMenuItems(channel, () => setEditChannelModal(true, channel._id))}>
+      <ContextMenu
+        items={getChannelMenuItems(
+          channel,
+          () => setEditChannelModal(true, channel._id),
+          () => setManageMembersOpen(true),
+          canManagePrivateMembers,
+          canEditChannel,
+          canDeleteChannel
+        )}
+      >
         <button
           onClick={onClick}
           className={clsx(
@@ -346,9 +408,19 @@ export const ChannelItem: React.FC<ChannelItemProps> = ({
               key={member.userId}
               member={member}
               isMe={member.userId === currentUserId}
+              canManageOthers={isAdminOrOwner}
             />
           ))}
         </div>
+      )}
+
+      {channel.type === 'private' && (
+        <ManageChannelMembersModal
+          isOpen={manageMembersOpen}
+          channel={channel}
+          onClose={() => setManageMembersOpen(false)}
+          onChannelUpdated={(updated) => updateChannel(channel._id, updated)}
+        />
       )}
     </div>
   );

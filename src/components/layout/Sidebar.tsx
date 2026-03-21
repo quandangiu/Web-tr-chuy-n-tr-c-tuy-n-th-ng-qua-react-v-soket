@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
@@ -9,8 +9,9 @@ import { WorkspaceSettingsModal } from '../workspace/WorkspaceSettingsModal';
 import { CreateChannelModal } from '../channel/CreateChannelModal';
 import { EditChannelModal } from '../channel/EditChannelModal';
 import { Avatar } from '../ui/Avatar';
+import { Dropdown } from '../ui/Dropdown';
 import { VoiceChannelBar } from '../voice/VoiceChannelBar';
-import { Mic, Headphones, Settings } from 'lucide-react';
+import { Settings, LogOut, UserCog } from 'lucide-react';
 import { authService } from '../../services/auth.service';
 import { disconnectSocket } from '../../socket/socket';
 import toast from 'react-hot-toast';
@@ -20,7 +21,6 @@ export const Sidebar: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const { current } = useWorkspaceStore();
-  const { setCreateChannelModal } = useUIStore();
 
   const handleLogout = async () => {
     try {
@@ -30,8 +30,23 @@ export const Sidebar: React.FC = () => {
     }
     disconnectSocket();
     logout();
+    toast.success('Đã đăng xuất');
     navigate('/login');
   };
+
+  const settingsItems = [
+    {
+      label: 'Tài khoản',
+      icon: <UserCog size={14} />,
+      onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
+    },
+    {
+      label: 'Đăng xuất',
+      icon: <LogOut size={14} />,
+      danger: true,
+      onClick: handleLogout,
+    },
+  ];
 
   return (
     <div className="h-full flex flex-col bg-blue-50/50 dark:bg-sidebar-dark border-r border-blue-100 dark:border-[#243a54] relative overflow-hidden">
@@ -68,7 +83,7 @@ export const Sidebar: React.FC = () => {
 
       {/* User panel */}
       <div className="relative h-[52px] bg-blue-50 dark:bg-[#070e1a] flex items-center px-2 space-x-2 border-t border-blue-100 dark:border-white/[0.06]">
-        <div className="relative group cursor-pointer" onClick={handleLogout} title="Click to logout">
+        <div className="relative group" title="Tài khoản">
           <Avatar
             src={user?.avatar}
             name={user?.displayName || user?.username || '?'}
@@ -85,15 +100,16 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center">
-          <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Mic">
-            <Mic size={16} />
-          </button>
-          <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Headset">
-            <Headphones size={16} />
-          </button>
-          <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Settings">
-            <Settings size={16} />
-          </button>
+          <Dropdown
+            align="right"
+            side="top"
+            items={settingsItems}
+            trigger={
+              <button className="p-1.5 hover:bg-blue-100 dark:hover:bg-[#1e3250] rounded-lg text-gray-500 dark:text-sidebar-muted hover:text-primary transition-colors" title="Cài đặt">
+                <Settings size={16} />
+              </button>
+            }
+          />
         </div>
       </div>
 

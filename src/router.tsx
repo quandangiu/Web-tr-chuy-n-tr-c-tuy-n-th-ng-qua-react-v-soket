@@ -12,6 +12,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { WorkspacePage } from './pages/WorkspacePage';
 import { ChannelPage } from './pages/ChannelPage';
 import { JoinInvitePage } from './pages/JoinInvitePage';
+import { HomePage } from './pages/HomePage';
 
 /* ── Protected Route wrapper ── */
 const ProtectedRoute: React.FC = () => {
@@ -32,6 +33,11 @@ const GuestRoute: React.FC = () => {
 
 /* ── Router ── */
 export const router = createBrowserRouter([
+  // Public home
+  {
+    path: '/',
+    element: <HomePage />,
+  },
   // Guest routes
   {
     element: <GuestRoute />,
@@ -45,32 +51,19 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
+        path: 'workspace',
         element: <AppLayout />,
         children: [
           {
-            index: true,
-            element: (
-              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                <div className="text-center space-y-3">
-                  <div className="text-5xl">💬</div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Chào mừng đến Chat Realtime
-                  </h2>
-                  <p>Chọn hoặc tạo workspace để bắt đầu</p>
-                </div>
-              </div>
-            ),
-          },
-          {
-            path: 'workspace/:slug',
+            path: ':slug',
             element: <WorkspacePage />,
           },
           {
-            path: 'workspace/:slug/channel/:channelId',
+            path: ':slug/channel/:channelId',
             element: <ChannelPage />,
           },
           {
-            path: 'workspace/join/:inviteCode',
+            path: 'join/:inviteCode',
             element: <JoinInvitePage />,
           },
         ],

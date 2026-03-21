@@ -31,6 +31,7 @@ export interface CreateChannelPayload {
   type: 'public' | 'private' | 'voice';
   description?: string;
   encryptionEnabled?: boolean;
+  memberIds?: string[];
 }
 
 export interface CreateDMPayload {
