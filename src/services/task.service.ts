@@ -43,6 +43,11 @@ export const taskService = {
     return res.data.data;
   },
 
+  addComment: async (taskId: string, content: string) => {
+    const res = await api.post<ApiResponse<Task>>(`/tasks/${taskId}/comment`, { content });
+    return res.data.data;
+  },
+
   getMySummary: async (workspaceId?: string, channelId?: string) => {
     const res = await api.get<ApiResponse<MyTaskSummary>>('/tasks/my-summary', {
       params: {

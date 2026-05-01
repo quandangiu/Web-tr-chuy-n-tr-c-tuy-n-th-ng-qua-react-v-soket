@@ -13,6 +13,7 @@ interface UIState {
   taskPanelWidth: number;
   videoCallModalOpen: boolean;
   lightboxUrl: string | null;
+  userProfileModalOpen: boolean;
   theme: 'dark' | 'light';
 
   toggleSidebar: () => void;
@@ -29,6 +30,7 @@ interface UIState {
   setTaskPanelWidth: (width: number) => void;
   setVideoCallModal: (open: boolean) => void;
   setLightboxUrl: (url: string | null) => void;
+  setUserProfileModal: (open: boolean) => void;
   toggleTheme: () => void;
 }
 
@@ -55,6 +57,7 @@ export const useUIStore = create<UIState>((set) => ({
   taskPanelWidth: DEFAULT_TASK_PANEL_WIDTH,
   videoCallModalOpen: false,
   lightboxUrl: null,
+  userProfileModalOpen: false,
   theme: 'dark',
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
@@ -71,6 +74,7 @@ export const useUIStore = create<UIState>((set) => ({
   setTaskPanelWidth: (width) => set({ taskPanelWidth: Math.max(MIN_TASK_PANEL_WIDTH, Math.min(MAX_TASK_PANEL_WIDTH, width)) }),
   setVideoCallModal: (open) => set({ videoCallModalOpen: open }),
   setLightboxUrl: (url) => set({ lightboxUrl: url }),
+  setUserProfileModal: (open) => set({ userProfileModalOpen: open }),
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
 }));

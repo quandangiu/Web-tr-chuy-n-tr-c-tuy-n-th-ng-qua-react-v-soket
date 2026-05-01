@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Circle, AlertTriangle, Loader2, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Circle, AlertTriangle, Loader2, Plus, Trash2, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { taskService } from '../../services/task.service';
 import type { Task, TaskStatus } from '../../types/task.types';
 import { channelService } from '../../services/channel.service';
@@ -7,6 +7,7 @@ import type { User } from '../../types/user.types';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { useWorkspaceStore } from '../../store/workspaceStore';
+import { TaskDetailModal } from './TaskDetailModal';
 
 interface ChannelTaskPanelProps {
   workspaceId: string;
@@ -45,6 +46,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
   const [pollExpiresAt, setPollExpiresAt] = useState('');
   const [formOpen, setFormOpen] = useState(true);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const user = useAuthStore((s) => s.user);
   const currentWorkspace = useWorkspaceStore((s) => s.current);
 
@@ -157,6 +159,15 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
       window.removeEventListener('task-socket-event', onTaskSocketEvent as EventListener);
     };
   }, [channelId]);
+
+  useEffect(() => {
+    if (selectedTask) {
+      const latest = tasks.find((t) => t._id === selectedTask._id);
+      if (latest && latest !== selectedTask) {
+        setSelectedTask(latest);
+      }
+    }
+  }, [tasks, selectedTask]);
 
   const resetForm = () => {
     setTitle('');
@@ -354,7 +365,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
   const renderTaskCard = (task: Task) => (
     <div
       key={task._id}
-      className="rounded-xl border border-blue-100 dark:border-[#2a4a6b] bg-white/95 dark:bg-[#1e3250] p-2.5 shadow-[0_8px_24px_-16px_rgba(37,99,235,0.45)]"
+      className="rounded-xl border border-gray-200 dark:border-[#2a4a6b] bg-white dark:bg-[#1e3250] p-2.5 shadow-sm hover:shadow-md transition-shadow"
       draggable={mode === 'work' && canDragWorkTask(task)}
       onDragStart={() => setDraggingTaskId(task._id)}
       onDragEnd={() => setDraggingTaskId(null)}
@@ -378,18 +389,30 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
               </span>
             );
           })()}
-          <p className={`text-sm ${task.status === 'done' ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-            {task.title}
-          </p>
+          <div className="flex items-start justify-between gap-1">
+            <p className={`text-sm ${task.status === 'done' ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+              {task.title}
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedTask(task);
+              }}
+              className="mt-0.5 shrink-0 transition-colors text-gray-400 hover:text-primary"
+              title="Xem thông tin chi tiết"
+            >
+              <Info size={14} />
+            </button>
+          </div>
           <p className="text-[11px] text-primary mt-0.5 uppercase tracking-wide">{task.taskType || 'work'}</p>
           {task.taskType === 'work' && (
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 font-medium">
               {task.assignee ? `Phụ trách: ${task.assignee.displayName || task.assignee.username}` : 'Chưa có người nhận'}
             </p>
           )}
           {task.taskType === 'event' && (
             <>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 font-medium">
                 {task.eventAt ? `🗓 ${new Date(task.eventAt).toLocaleString()}` : 'Chưa có thời gian'}
                 {task.location ? ` · 📍 ${task.location}` : ''}
               </p>
@@ -412,7 +435,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
               {(() => {
                 const counts = getRsvpCounts(task);
                 return (
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-1 font-medium">
                     RSVP: {counts.going} tham gia • {counts.maybe} có thể • {counts.declined} từ chối
                   </p>
                 );
@@ -422,7 +445,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
           {task.taskType === 'poll' && task.pollOptions && task.pollOptions.length > 0 && (
             <div className="mt-1 space-y-1">
               {task.pollQuestion && (
-                <p className="text-[11px] text-gray-500 dark:text-gray-400">{task.pollQuestion}</p>
+                <p className="text-[11px] font-medium text-gray-700 dark:text-gray-300">{task.pollQuestion}</p>
               )}
               {task.pollOptions.map((o, idx) => {
                 const voted = !!user?._id && o.votes.includes(user._id);
@@ -439,7 +462,7 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
             </div>
           )}
           {task.taskType === 'work' && (
-            <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-600 dark:text-gray-400 font-medium">
               <select
                 value={task.status}
                 onChange={(e) => updateStatus(task._id, e.target.value as TaskStatus)}
@@ -476,8 +499,8 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
   );
 
   return (
-    <aside className="w-full border-l border-blue-100 dark:border-[#243a54] bg-gradient-to-b from-blue-50/70 to-blue-100/30 dark:from-[#0f1929] dark:to-[#0b1422] flex flex-col">
-      <div className="px-4 py-3 border-b border-blue-100 dark:border-[#243a54]">
+    <aside className="w-full border-l border-gray-200 dark:border-[#243a54] bg-gray-50 dark:bg-[#0b1422] flex flex-col">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#243a54] bg-white dark:bg-[#0f1929]">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white">Task Kênh</h3>
           <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">{activeTasks.length} mở</span>
@@ -496,17 +519,17 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
         )}
       </div>
 
-      <div className="p-3 border-b border-blue-100 dark:border-[#243a54] space-y-2">
+      <div className="p-3 border-b border-gray-200 dark:border-[#243a54] space-y-2 bg-white dark:bg-[#0f1929]">
         <div className="grid grid-cols-3 gap-1">
-          <button onClick={() => setMode('work')} className={`text-xs rounded-md py-1 ${mode === 'work' ? 'bg-primary text-white' : 'bg-white dark:bg-[#1e3250] text-gray-600 dark:text-gray-300'}`}>Work ({workCount})</button>
-          <button onClick={() => setMode('event')} className={`text-xs rounded-md py-1 ${mode === 'event' ? 'bg-primary text-white' : 'bg-white dark:bg-[#1e3250] text-gray-600 dark:text-gray-300'}`}>Event ({eventCount})</button>
-          <button onClick={() => setMode('poll')} className={`text-xs rounded-md py-1 ${mode === 'poll' ? 'bg-primary text-white' : 'bg-white dark:bg-[#1e3250] text-gray-600 dark:text-gray-300'}`}>Poll ({pollCount})</button>
+          <button onClick={() => setMode('work')} className={`text-xs rounded-md py-1.5 font-medium ${mode === 'work' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#1e3250] text-gray-700 dark:text-gray-300'}`}>Work ({workCount})</button>
+          <button onClick={() => setMode('event')} className={`text-xs rounded-md py-1.5 font-medium ${mode === 'event' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#1e3250] text-gray-700 dark:text-gray-300'}`}>Event ({eventCount})</button>
+          <button onClick={() => setMode('poll')} className={`text-xs rounded-md py-1.5 font-medium ${mode === 'poll' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 hover:bg-gray-200 dark:bg-[#1e3250] text-gray-700 dark:text-gray-300'}`}>Poll ({pollCount})</button>
         </div>
 
         <button
           type="button"
           onClick={() => setFormOpen((v) => !v)}
-          className="w-full flex items-center justify-between rounded-lg px-2.5 py-2 bg-white/80 dark:bg-[#1b2b44] border border-blue-100 dark:border-[#2a4a6b] text-xs text-gray-700 dark:text-gray-200"
+          className="w-full flex items-center justify-between rounded-lg px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-[#1b2b44] border border-gray-200 dark:border-[#2a4a6b] text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors"
         >
           <span>{formOpen ? 'Ẩn form tạo task' : 'Hiện form tạo task'}</span>
           {formOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -588,17 +611,17 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
               ] as const).map((col) => (
                 <div
                   key={col.key}
-                  className={`rounded-xl border border-blue-100 dark:border-[#2a4a6b] bg-white/40 dark:bg-[#16273d]/60 p-2 min-h-[140px] ${draggingTaskId ? 'ring-1 ring-primary/30' : ''}`}
+                  className={`rounded-xl border border-gray-200 dark:border-[#2a4a6b] bg-gray-100/50 dark:bg-[#16273d]/60 p-2 min-h-[140px] ${draggingTaskId ? 'ring-1 ring-primary/30' : ''}`}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => draggingTaskId && moveTaskToColumn(draggingTaskId, col.key)}
                 >
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">{col.label}</p>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary">{col.items.length}</span>
+                    <p className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">{col.label}</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{col.items.length}</span>
                   </div>
                   <div className="space-y-2">
                     {col.items.length === 0 ? (
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">Thả task vào đây</p>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium text-center py-2">Thả task vào đây</p>
                     ) : (
                       col.items.map((task) => renderTaskCard(task))
                     )}
@@ -613,13 +636,13 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
                 { key: 'in_progress', label: 'Đang làm', items: groupedWorkTasks.in_progress },
                 { key: 'done', label: 'Xong', items: groupedWorkTasks.done },
               ] as const).map((section) => (
-                <div key={section.key} className="space-y-2">
+                <div key={section.key} className="space-y-2 bg-gray-100/50 dark:bg-transparent p-2 rounded-xl">
                   <div className="flex items-center justify-between px-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{section.label}</p>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary">{section.items.length}</span>
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-gray-700 dark:text-gray-400">{section.label}</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{section.items.length}</span>
                   </div>
                   {section.items.length === 0 ? (
-                    <div className="text-[11px] text-gray-500 dark:text-gray-400 px-1">Không có task</div>
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400 px-1 italic">Không có task</div>
                   ) : (
                     section.items.map((task) => renderTaskCard(task))
                   )}
@@ -629,6 +652,13 @@ export const ChannelTaskPanel: React.FC<ChannelTaskPanelProps> = ({ workspaceId,
           )
         )}
       </div>
+
+      <TaskDetailModal 
+        task={selectedTask}
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onTaskUpdate={(t) => setTasks(prev => prev.map(p => p._id === t._id ? t : p))}
+      />
     </aside>
   );
 };

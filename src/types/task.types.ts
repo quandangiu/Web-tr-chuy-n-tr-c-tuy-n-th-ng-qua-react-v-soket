@@ -32,6 +32,12 @@ export interface Task {
   pollQuestion?: string;
   pollOptions?: Array<{ option: string; votes: string[] }>;
   pollExpiresAt?: string | null;
+  comments?: Array<{
+    _id: string;
+    user: TaskUser;
+    content: string;
+    createdAt: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }

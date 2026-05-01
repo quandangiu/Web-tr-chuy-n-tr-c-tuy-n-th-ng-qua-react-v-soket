@@ -11,6 +11,7 @@ import { EditChannelModal } from '../channel/EditChannelModal';
 import { Avatar } from '../ui/Avatar';
 import { Dropdown } from '../ui/Dropdown';
 import { VoiceChannelBar } from '../voice/VoiceChannelBar';
+import { UserProfileModal } from '../user/UserProfileModal';
 import { Settings, LogOut, UserCog } from 'lucide-react';
 import { authService } from '../../services/auth.service';
 import { disconnectSocket } from '../../socket/socket';
@@ -38,7 +39,7 @@ export const Sidebar: React.FC = () => {
     {
       label: 'Tài khoản',
       icon: <UserCog size={14} />,
-      onClick: () => toast('Tính năng sắp ra mắt!', { icon: '🔜' }),
+      onClick: () => useUIStore.getState().setUserProfileModal(true),
     },
     {
       label: 'Đăng xuất',
@@ -118,6 +119,7 @@ export const Sidebar: React.FC = () => {
       <WorkspaceSettingsModal />
       <CreateChannelModal />
       <EditChannelModal />
+      <UserProfileModal />
     </div>
   );
 };
